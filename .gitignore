@@ -1,0 +1,89 @@
+# Build artifacts
+build/
+cmake-build-*/
+*.cmake
+
+# Compiler output
+*.o
+*.obj
+*.a
+*.lib
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Debug symbols
+*.pdb
+*.map
+*.ilk
+
+# IDE/Editor files
+.vs/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Test coverage
+*.gcov
+*.gcno
+*.gcda
+*.info
+coverage/
+
+# Generated files
+*.log
+*.tmp
+temp/
+tmp/
+
+# VirtualT related
+VirtualT.*
+virtualt.*
+*.ROM
+*.bin
+
+# Unity test framework (download if missing)
+Tools/unity/
+
+# CMake cache
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+build.make
+cmake.check_cache
+Rules.make
+CMakeOutput.log
+CMakeError.log
+
+# Visual Studio / MSBuild
+*.vcxproj
+*.vcxproj.filters
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sln.cache
+*.pch
+*.idb
+*.aps
+
+# GCC / Clang
+*.d
+*.ppm
+*.s
+*.out

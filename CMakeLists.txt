@@ -58,11 +58,25 @@ target_include_directories(unity PUBLIC
     ${CMAKE_SOURCE_DIR}/Tools/unity/src
 )
 
-# Test executable
+# Test executable for vt_process
 add_executable(vt_process_tests
     Tests/test_vt_process.c
     Common/thought_test_common.c
 )
+
+# Test executable for VirtualT integration tests
+add_executable(vt_virtual_t_tests
+    Tests/test_vt_virtual_t.c
+)
+
+target_include_directories(vt_virtual_t_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/Tests
+    ${CMAKE_SOURCE_DIR}/Library/vt_process
+    ${CMAKE_SOURCE_DIR}/Library/vt_socket
+    ${CMAKE_SOURCE_DIR}/Tools/unity/src
+)
+
+target_link_libraries(vt_virtual_t_tests vt_process vt_socket unity)
 
 target_include_directories(vt_process_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/Tests

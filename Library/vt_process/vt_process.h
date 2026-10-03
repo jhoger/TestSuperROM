@@ -49,11 +49,14 @@ typedef struct {
 /* Process configuration */
 typedef struct {
     const char* virtualt_path;
-    uint16_t port;
+    uint16_t port;             /* Socket port (0 = auto-assign) */
     const char* rom_path;
     bool headless;
     uint32_t startup_timeout_ms;
 } vt_process_config_t;
+
+/* Convenience macro for auto-assigning port */
+#define VT_PROCESS_PORT_AUTO 0
 
 /* Event callback type */
 typedef void (*vt_process_callback_t)(const char* event, void* user_data);
@@ -77,6 +80,14 @@ bool vt_process_connect(vt_process_handle_t handle,
                         vt_socket_handle_t socket_handle);
 void vt_process_disconnect(vt_process_handle_t handle);
 bool vt_process_terminate(vt_process_handle_t handle);
+
+/* ============================================================================
+ * Helper Functions
+ * ========================================================================= */
+
+/* Create a socket handle connected to this process's port */
+vt_socket_handle_t vt_process_create_socket(vt_process_handle_t handle,
+                                            const char* host);
 
 /* ============================================================================
  * Status Functions

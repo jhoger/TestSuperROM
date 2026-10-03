@@ -63,18 +63,13 @@ bool vt_socket_connect(vt_socket_handle_t handle) {
     vt_socket_internal_t* i = (vt_socket_internal_t*)handle;
     if(!i) return false;
     int s = (int)socket(AF_INET, SOCK_STREAM, 0);
-    if(s < 0) {
-        printf("[DEBUG] vt_socket_connect: socket() failed\n");
-        return false;
-    }
+    if(s < 0) return false;
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(i->port);
     inet_pton(AF_INET, i->host, &addr.sin_addr);
-    printf("[DEBUG] vt_socket_connect: connecting to %s:%d\n", i->host, i->port);
     if(connect(s, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-        printf("[DEBUG] vt_socket_connect: connect() failed\n");
         close(s);
         return false;
     }
@@ -104,9 +99,15 @@ bool vt_socket_send_command(vt_socket_handle_t handle, const char* command, char
     ssize_t s = send(i->socket_fd, command, (int)cmd_len, 0);
     if(s <= 0) return false;
     
-    /* Receive response */
+    /* Receive response with timeout */
+    /* Set a short timeout for recv */
+    DWORD timeout = 2000;  /* 2 second timeout */
+    setsockopt(i->socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
+    
     ssize_t r = recv(i->socket_fd, response, (int)response_size - 1, 0);
-    if(r <= 0) return false;
+    if(r <= 0) {
+        return false;
+    }
     
     response[r] = '\0';
     

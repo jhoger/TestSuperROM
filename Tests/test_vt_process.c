@@ -43,7 +43,7 @@ void test_launch_terminate(void) {
     
     vt_process_config_t config = {
         .virtualt_path = vt_path,
-        .port = 6166,
+        .port = 0,  /* Auto-assign port */
         .headless = true,
         .startup_timeout_ms = 30000
     };

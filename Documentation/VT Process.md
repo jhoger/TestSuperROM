@@ -206,6 +206,29 @@ bool vt_process_terminate(vt_process_handle_t handle);
 
 ---
 
+#### vt_process_create_socket
+
+Creates a socket handle connected to this process's port.
+
+`c
+vt_socket_handle_t vt_process_create_socket(vt_process_handle_t handle,
+                                            const char* host);
+`
+
+**Parameters:**
+- handle - Process handle
+- host - Host to connect to (NULL or "127.0.0.1" for localhost)
+
+**Returns:**
+- Socket handle on success, NULL on failure
+
+**Notes:**
+- Automatically uses the port assigned to this process
+- Convenience wrapper around vt_socket_create() for process-specific connections
+- The caller is responsible for destroying the socket handle with vt_socket_destroy()
+
+---
+
 #### vt_process_destroy
 
 Cleans up the process handle and releases resources.

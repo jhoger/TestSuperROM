@@ -20,12 +20,12 @@ typedef struct vt_process_t {
 } vt_process_internal_t;
 
 static uint16_t vt_process_find_port(vt_process_handle_t handle);
-static bool vt_process_create_process(const vt_process_config_t* config, VT_PROCESS_PID* process_handle);
+static bool vt_process_create_process(const vt_process_config_t* config, VT_PROCESS_PID* process_handle, uint16_t port);
 static bool vt_process_destroy_process(VT_PROCESS_PID process_handle);
 
 #ifdef _WIN32
 
-static bool vt_process_create_process(const vt_process_config_t* config, VT_PROCESS_PID* process_handle) {
+static bool vt_process_create_process(const vt_process_config_t* config, VT_PROCESS_PID* process_handle, uint16_t port) {
     char command_line[512];
     char virtualt_path[512];
     char working_dir[512];
@@ -53,7 +53,7 @@ static bool vt_process_create_process(const vt_process_config_t* config, VT_PROC
         }
     }
     
-    snprintf(command_line, sizeof(command_line), "\"%s\" -p %d", virtualt_path, config->port ? config->port : 6166);
+    snprintf(command_line, sizeof(command_line), "\"%s\" -p %d", virtualt_path, port);
     
     char* last_slash = strrchr(virtualt_path, '\\');
     if (last_slash) {
@@ -92,7 +92,9 @@ static bool vt_process_destroy_process(VT_PROCESS_PID process_handle) {
 
 #else
 
-static bool vt_process_create_process(const vt_process_config_t* config, VT_PROCESS_PID* process_handle) {
+static bool vt_process_create_process(const vt_process_config_t* config, VT_PROCESS_PID* process_handle, uint16_t port) {
+    (void)config;
+    (void)port;
     pid_t pid = fork();
     if (pid < 0) return false;
     if (pid == 0) _exit(127);
@@ -134,9 +136,22 @@ bool vt_process_launch(vt_process_handle_t handle, const vt_process_config_t* co
     }
     
     if (internal->is_running) vt_process_terminate(handle);
-    if (!vt_process_create_process(config, &internal->process_handle)) return false;
     
-    internal->port = config->port;
+    /* Determine port before launching process */
+    uint16_t launch_port;
+    if (config->port == 0) {
+        launch_port = vt_process_find_port(handle);
+        if (launch_port == 0) {
+            vt_process_set_error("Failed to find available port for VirtualT socket");
+            return false;
+        }
+    } else {
+        launch_port = config->port;
+    }
+    
+    if (!vt_process_create_process(config, &internal->process_handle, launch_port)) return false;
+    
+    internal->port = launch_port;
     internal->is_running = true;
     return true;
 }
@@ -249,6 +264,15 @@ bool vt_process_is_connected(vt_process_handle_t handle) {
     return internal ? internal->is_connected : false;
 }
 
+vt_socket_handle_t vt_process_create_socket(vt_process_handle_t handle, const char* host) {
+    vt_process_internal_t* internal = (vt_process_internal_t*)handle;
+    if (!internal) return NULL;
+    
+    const char* host_to_use = host ? host : "127.0.0.1";
+    vt_socket_handle_t sock = vt_socket_create(host_to_use, internal->port);
+    return sock;
+}
+
 bool vt_process_set_callback(vt_process_handle_t handle, vt_process_callback_t callback, void* user_data) {
     vt_process_internal_t* internal = (vt_process_internal_t*)handle;
     if (!internal) return false;
@@ -261,14 +285,19 @@ static uint16_t vt_process_find_port(vt_process_handle_t handle) {
     uint16_t ports[] = {6166, 6167, 6168, 6169, 6170};
     for (int i = 0; i < 5; i++) {
         vt_socket_handle_t sock = vt_socket_create("127.0.0.1", ports[i]);
-        if (sock && vt_socket_connect(sock)) {
-            vt_socket_disconnect(sock);
+        if (sock) {
+            if (vt_socket_connect(sock)) {
+                /* Port is in use, try next */
+                vt_socket_disconnect(sock);
+                vt_socket_destroy(sock);
+                continue;
+            }
+            /* Port is available - use it */
             vt_socket_destroy(sock);
             return ports[i];
         }
-        if (sock) vt_socket_destroy(sock);
     }
-    return 0;
+    return 0; /* No available port found */
 }
 
 const char* vt_process_get_error(void) {

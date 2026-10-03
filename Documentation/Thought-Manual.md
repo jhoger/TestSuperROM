@@ -1,4 +1,3 @@
---- PAGE 1 ---
 THOUGHT
 
 Outline processor
@@ -19,7 +18,6 @@ learned the program. It is a complete program
 reference.
 
 
---- PAGE 2 ---
 THOUGHT
 Chapter one
 The creative thought generator
@@ -60,9 +58,6 @@ Into a easily workable outline form.
 
 Page T1-1 Introduction
 
-
---- PAGE 3 ---
-SuperROM four integrated programs
 
 2. Organize notes -
 
@@ -109,7 +104,6 @@ on another.
 Page T1-2 Introduction
 
 
---- PAGE 4 ---
 Including quotes, facts and ideas from
 other documents.
 
@@ -153,8 +147,7 @@ it as we can.
 Page T1-3 Introduction
 
 
---- PAGE 5 ---
-SuperROM four integrated programs
+
 II. In short
 
 The important point to consider is this:
@@ -169,7 +162,6 @@ Give it all some THOUGHT, and let’s go!
 Page T1-4 Introduction
 
 
---- PAGE 6 ---
 THOUGHT
 Chapter two
 Definition
@@ -203,8 +195,7 @@ programs of Super ROM as well.
 Pape T2-1 Definition
 
 
---- PAGE 7 ---
-SUPER ROM four integrated programs
+
 II. It’s a creative thought generator
 A. What can it do?
 
@@ -249,7 +240,6 @@ the primary points.
 Page T2-2 Definition
 
 
---- PAGE 8 ---
 5. You can-expand any collapsed heading to
 look at its subpoints or you can expand
 the entire outline.
@@ -282,9 +272,6 @@ manipulation with Write ROM.
 Page T2-3 Definition
 
 
---- PAGE 9 ---
-SuperROM four integrated programs
-
 C. How do you put an outline to work for
 you?
 
@@ -303,7 +290,6 @@ use.
 Page T2-4 Definition
 
 
---- PAGE 10 ---
 III. Our example
 
 A. Doing a project plan
@@ -353,9 +339,6 @@ any subs yet.
 Page T2-5 Definition
 
 
---- PAGE 11 ---
-SuperROM four integrated programs
-
 some of our thoughts can be grouped
 together more logically because they are
 sub thoughts for other more general main
@@ -404,7 +387,6 @@ shortened "doing research" to
 Page T2-6 Definition
 
 
---- PAGE 12 ---
 "research" and put those two undcr
 it.
 
@@ -453,9 +435,6 @@ underneath hidden from view.
 Page T2-7 Definition
 
 
---- PAGE 13 ---
-SuperROM four integrated programs
-
 (2) Now we expand it out to just the
 headings.
 
@@ -499,7 +478,6 @@ that subheading.
 Page T2-8 Definition
 
 
---- PAGE 14 ---
 b. Suddenly we are in TEXT creating a
 file. We type a letter in its entirety
 with no restriction as to size:
@@ -538,9 +516,6 @@ Safety director
 
 Page T2-9 Definition
 
-
---- PAGE 15 ---
-SuperROM four integrated programs
 
 c. Now we exit right out of that
 document and we are immediately back in
@@ -587,7 +562,6 @@ outline including all its documents.
 Page T2-10 Definition
 
 
---- PAGE 16 ---
 2. We can have it indented or not,
 numbered or not to any level we choose.
 
@@ -610,10 +584,8 @@ you.
 Page T2-11 Definition
 
 
---- PAGE 17 ---
 
 
---- PAGE 18 ---
 THOUGHT
 
 Chapter Three
@@ -653,9 +625,6 @@ indicated.
 
 Page T3-1 Getting Started
 
-
---- PAGE 19 ---
-SuperROM four integrated programs
 
 Il. Accessing THOUGHT
 
@@ -698,7 +667,6 @@ create your outline.
 Page T3-2 Getting Started
 
 
---- PAGE 20 ---
 Ill. Accessing an outline from the Main Menu
 
 A. Press F8 to exit you from your new outline
@@ -744,9 +712,6 @@ Therefore you will want to exit from an
 Page T3-3 Getting Started
 
 
---- PAGE 21 ---
-SuperROM four integrated programs
-
 application and go immediately into
 another. Lucid worksheets and THOUGHT
 outlines when accessed from the Main Menu
@@ -760,7 +725,6 @@ your outline.
 Page T3-4 Getting Started
 
 
---- PAGE 22 ---
 THOUGHT
 Chapter four
 Creating an outline
@@ -800,9 +764,6 @@ window.
 
 Page T4-1 Create mode
 
-
---- PAGE 23 ---
-SuperROM four integrated programs
 
 The virtual window explained:
 
@@ -846,7 +807,6 @@ Screen now says:
 Page T4-2 Create mode
 
 
---- PAGE 24 ---
 3. Minus sign: This is automatically
 
 inserted followed by a space. This means
@@ -894,9 +854,6 @@ first heading.
 Page T4-3 Create mode
 
 
---- PAGE 25 ---
-SuperROM tour integrated programs
-
 Screen will show:
 
 ```
@@ -923,7 +880,6 @@ to indicate there is something under it.)
 Page T4-4 Create mode
 
 
---- PAGE 26 ---
 
 IV. Exiting from Create mode
 to Review/Revise mode
@@ -972,9 +928,6 @@ corrections or changes.
 Page T4-5 Create mode
 
 
---- PAGE 27 ---
-SuperROM four integrated programs
-
 2. Browsing and editing are covered in
 detail in the next chapter. You'll learn
 many things that you can do in
@@ -1019,7 +972,6 @@ time.
 Page T4-6 Create mode
 
 
---- PAGE 28 ---
 VII. Moving the Create window
 
 A. Occasionally you will want to go back and
@@ -1055,9 +1007,6 @@ like the next heading to appear.
 
 Page T4-7 Create mode
 
-
---- PAGE 29 ---
-SuperROM four integrated programs
 
 VII. Indenting or creating subheadings
 
@@ -1107,7 +1056,6 @@ yet another sublevel down and to the right
 Page T4-8 Create mode
 
 
---- PAGE 30 ---
 from the previous subheading. Notice that
 you can’t move but one indentation to the
 right at a time. This makes sense because you
@@ -1137,8 +1085,7 @@ the right.
 Page T4-9 Create mode
 
 
---- PAGE 31 ---
-WIPRO tour integrated programs
+
 IX. Keys in Create mode
 
 A. In "THOUGHT" the use of keys for movement
@@ -1183,7 +1130,6 @@ to immediately above nearest heading of
 Page T4-10 Create mode
 
 
---- PAGE 32 ---
 previous level (varies depending on
 indentation of previous line).
 
@@ -1227,9 +1173,6 @@ Review/Revise mode.
 Page T4-11 Create mode
 
 
---- PAGE 33 ---
-SuperROM four integrated programs
-
 b. After typing characters: Creates
 heading from what was typed and causes
 new create window.
@@ -1252,7 +1195,6 @@ new create window.
 Page T4-12 Create mode
 
 
---- PAGE 34 ---
 X. F2 (Load) Loads outlines from cassette
 
 A. For previously saved outlines
@@ -1295,9 +1237,6 @@ menu.
 
 Page T4-13 Create mode
 
-
---- PAGE 35 ---
-SuperROM four integrated programs
 
 3. Screen says:
 
@@ -1347,7 +1286,6 @@ file. When you load it back as in these
 Page T4-14 Create mode
 
 
---- PAGE 36 ---
 steps it is recreated as a ".CT" file
 again)
 
@@ -1359,7 +1297,6 @@ from the keyboard.
 Page T4-15 Create mode
 
 
---- PAGE 37 ---
 THOUGHT
 Chapter five
 Creating TEXT files
@@ -1398,9 +1335,6 @@ the one above, not equal).
 
 Page T5-1 Creating TEXT files
 
-
---- PAGE 38 ---
-SuperROM four integrated programs
 
 3. Type in a document name. We used BID.DO
 (for chemical bid).
@@ -1447,16 +1381,12 @@ Max Finster, Sales Manager
 Page T5-2 Creating TEXT files
 
 
---- PAGE 39 ---
 5. When you have completed your text
 preparation simply press F8 to return you
 to your THOUGHT outline.
 
 Page T5-3 Creating TEXT files
 
-
---- PAGE 40 ---
-SuperROM four integrated programs
 
 D. How the text file is displayed.
 Now the screen shows:
@@ -1496,7 +1426,6 @@ outline.
 Page T5-4 Creating TEXT files
 
 
---- PAGE 41 ---
 Il. Accessing the document
 in Review/Revise mode
 
@@ -1535,9 +1464,6 @@ Notice that you are still in the
 
 Page T5-5 Creating TEXT files
 
-
---- PAGE 42 ---
-SuperROM four integrated programs
 
 III. Deleting a document outline entry
 
@@ -1581,7 +1507,6 @@ that BID.DO is still there.
 Page T5-6 Creating TEXT files
 
 
---- PAGE 43 ---
 IV. Making an existing document
 part of the outline
 A. Go into Create mode.
@@ -1613,9 +1538,6 @@ of the document are shown as before:
 
 Page T5-7 Creating TEXT files
 
-
---- PAGE 44 ---
-SUPER ROM four integrated programs
 
 V. Removing an outline document
 file from RAM
@@ -1657,7 +1579,6 @@ Now the screen shows:
 Page T5-8 Creating TEXT files
 
 
---- PAGE 45 ---
 + Direct Marketing Plan:New car wax, Super Glow
 - Product description
 
@@ -1678,9 +1599,6 @@ a diskette or cassette.
 Page T5-9 Creating TEXT files
 
 
---- PAGE 46 ---
-SUPER ROM four integrated programs
-
 VI. Loading a previous outline
 document back into RAM:
 
@@ -1696,7 +1614,6 @@ document displayed.
 Page T5-10 Creating TEXT files
 
 
---- PAGE 47 ---
 THOUGHT
 Chapter six
 
@@ -1745,9 +1662,6 @@ b. Excellent deletion capability. A
 Page T6-1 Review/Revise mode
 
 
---- PAGE 48 ---
-Suy ROM) four integrated programs
-
 character at a time, an entire line, ora
 headinz and all its children.
 
@@ -1783,7 +1697,6 @@ right back into your outline.
 Page T6-2 Review/Revise mode
 
 
---- PAGE 49 ---
 Il. Movement in Review/Revise
 A. The edit window.
 
@@ -1810,9 +1723,6 @@ file. You have similar controls over it.
 
 Page T6-3 Review/Revise mode
 
-
---- PAGE 50 ---
-SYPRONI tour integrated programs
 
 Il. Studying movement
 A. Our example
@@ -1849,7 +1759,6 @@ as follows.
 Page T6-4 Review/Revise mode
 
 
---- PAGE 51 ---
 Sample outline for study:
 
 + Direct marketing Plan: New car wax, Super Glow
@@ -1893,9 +1802,6 @@ Sample outline for study:
 
 Page T6-5 Review/Revise mode
 
-
---- PAGE 52 ---
-SYPRONI tour integrated programs
 
 B. Studying the movement control keys
 available in Review/Revise mode.
@@ -1943,7 +1849,6 @@ showing you will go to the parent of
 Page T6-6 Review/Revise mode
 
 
---- PAGE 53 ---
 that heading (and the one you are
 on).
 h. Shift down arrow: moves edit window
@@ -1990,8 +1895,7 @@ c. With the cursor at the extreme left
 Page T6-7 Review/Revise mode
 
 
---- PAGE 54 ---
-HPRON tour integrated programs
+
 of the heading:
 
 (1) To scroll screen left one
@@ -2038,7 +1942,6 @@ over One indention. Please realize that
 Page T6-8 Review/Revise mode
 
 
---- PAGE 55 ---
 nothing changed in relation to other
 headings. This movement was merely the
 screen display for you to improve your
@@ -2089,9 +1992,6 @@ F. Hoisting
 
 Page T6-9 Review/Revise mode
 
-
---- PAGE 56 ---
-SUPER ROM four integrated programs
 
 1. With the cursor still on the
 "customers don’t feel over stocked"
@@ -2145,7 +2045,6 @@ examples. Move on your outline to the
 Page T6-10 Review/Revise mode
 
 
---- PAGE 57 ---
 origin (from) points as shown, and doa
 SHIFT up arrow. Then do the SHIFT down
 arrow exercises as indicated.
@@ -2192,9 +2091,6 @@ EPA..."
 Page T6-11 Review/Revise mode
 
 
---- PAGE 58 ---
-yup rf IM four integrated programs
-
 b. From "No EPA..." to "Supply"
 
 6. Review these SHIFT down arrow rules in
@@ -2213,7 +2109,6 @@ next superior level down.
 Page T6-12 Review/Revise mode
 
 
---- PAGE 59 ---
 IV. Deletion keys in Review/Revise mode
 A. These are the deletion key combinations:
 
@@ -2257,9 +2152,6 @@ require illustration.
 Page T6-13 Review/Revise mode
 
 
---- PAGE 60 ---
-SYPRONI tour integrated programs
-
 - instantly creates glass like finish
 - No EPA problems
 - Out performs the competion
@@ -2302,7 +2194,6 @@ Delete 1 line(s)
 Page T6-14 Review/Revise mode
 
 
---- PAGE 61 ---
 a. Now the minus disappears and
 
 b. The outline closes up to fill the
@@ -2345,9 +2236,6 @@ void.
 Page T6-15 Review/Revise mode
 
 
---- PAGE 62 ---
-SUPER ROM four integrated programs
-
 a. Repeat the exercise above but press
 n or ESC to cancel.
 
@@ -2357,7 +2245,6 @@ heading "New formulation" comes back.
 Page T6-16 Review/Revise mode
 
 
---- PAGE 63 ---
 V. The function keys of Review/Revise
 
 If you are not in Review/Revise get there by
@@ -2401,9 +2288,6 @@ outline.
 
 Page T6-17 Review/Revise mode
 
-
---- PAGE 64 ---
-avy Re MI four integrated programs
 
 d. F4 - Clone: Makes an exact copy of
 the headline that the wide bar cursor
@@ -2452,7 +2336,6 @@ area from the outline. Cut material
 Page T6-18 Review/Revise mode
 
 
---- PAGE 65 ---
 remains in an invisible "buffer"
 area for pasting in the same
 outline, another outline, a Lucid
@@ -2475,9 +2358,6 @@ your headline.
 Page T6-19 Review/Revise mode
 
 
---- PAGE 66 ---
-SHPRON tour integrated programs
-
 B. Detail of each function key in the
 Review/Revise mode.
 
@@ -2488,7 +2368,6 @@ function keys of Review/Revise or edit mode.
 Page T6-20 Review/Revise mode
 
 
---- PAGE 67 ---
 Notes:
 Exiting from Review/Revise mode:
 ENTER or PASTE once - to Create mode.
@@ -2522,7 +2401,6 @@ right when dragging in Revise/Review mode
 Page T6-21 Review/Revise mode
 
 
---- PAGE 68 ---
 THOUGHT
 Chapter Seven
 Using the function keys
@@ -2557,8 +2435,7 @@ These keys are fun to use!
 Page T7-1 Function keys
 
 
---- PAGE 69 ---
-SUPER ROM four integrated programs
+
 1. F1 (Find) Searches for any text
 in an outline and its documents
 
@@ -2605,7 +2482,6 @@ in:
 Page T7-2 Function keys
 
 
---- PAGE 70 ---
 auto
 
 5. Press ENTER
@@ -2645,8 +2521,7 @@ Find: Auto
 Page T7-3 Function keys
 
 
---- PAGE 71 ---
-SUPER ROM four integrated programs
+
 Press enter.
 Find: No match
 
@@ -2671,7 +2546,6 @@ corrections.
 Page T7-4 Function keys
 
 
---- PAGE 72 ---
 Il. F2 (Hide) Conceals subheadings
 A. What you can do:
 
@@ -2717,8 +2591,7 @@ C. How F2 (Hide) works:
 Page T7-5 Function keys
 
 
---- PAGE 73 ---
-SYYPRONI four integrated programs
+
 1. Go into your CWAX.CT file.
 
 2. "Find" (F1) the line: Credit cards.
@@ -2762,7 +2635,6 @@ has nothing to "hide"!
 Page T7-6 Function keys
 
 
---- PAGE 74 ---
 E. Collapsing the entire outline
 
 1. Move to the top of the file (use CTRL
@@ -2782,8 +2654,7 @@ expand out headings after they have been hidden.
 Page 17-7 Function keys
 
 
---- PAGE 75 ---
-au RONI four integrated programs
+
 Ill. F3 (Show) Expands hidden subheadings
 
 A. What you can do:
@@ -2834,7 +2705,6 @@ Screen shows:
 Page T7-8 Function keys
 
 
---- PAGE 76 ---
 2. Now press F3 (Show).
 Screen shows:
 
@@ -2881,9 +2751,6 @@ gives you two capabilities:
 Page T7-9 Function keys
 
 
---- PAGE 77 ---
-au RONI {our integrated programs
-
 a. You can expand the entire outline by
 going to the root or title headline (do
 
@@ -2928,7 +2795,6 @@ e. Practice "hiding" and both ways of
 Page T7-10 Function keys
 
 
---- PAGE 78 ---
 the procedure.
 
 D. Using Hide and Show:
@@ -2970,9 +2836,6 @@ expanded.
 
 Page T7-11 Function keys
 
-
---- PAGE 79 ---
-SAROM four integrated programs
 
 IV. F4 (Clone) Makes clones of any
 heading or subheading
@@ -3020,7 +2883,6 @@ are updated automatically.
 Page T7-12 Function keys
 
 
---- PAGE 80 ---
 a. Master list of catalog items then
 cloned under various catagories. Each
 item has prices to be updated.
@@ -3066,9 +2928,6 @@ subheading.
 Page T7-13 Function keys
 
 
---- PAGE 81 ---
-up ROI four integrated programs
-
 The one negative about clones is that you
 can no longer tell by looking if a cloned
 heading has any subs under it. The + and -
@@ -3113,7 +2972,6 @@ revising the one entry.
 Page T7-14 Function keys
 
 
---- PAGE 82 ---
 2. Example:
 a. The main topics:
 
@@ -3161,9 +3019,6 @@ alphabetical.
 Page T7-15 Function keys
 
 
---- PAGE 83 ---
-yy ROM four integrated programs
-
 & Roses .56/ea
 & Sunflower .45/Ib
 & Sweet William .76/Ib
@@ -3208,7 +3063,6 @@ completed.
 Page T7-16 Function keys
 
 
---- PAGE 84 ---
 2. The following cxample shows how cloning
 can be used for staff assignments.
 
@@ -3257,9 +3111,6 @@ b. The people and the job categories:
 Page T7-17 Function keys
 
 
---- PAGE 85 ---
-au Re JM four integrated programs
-
 c. The cloned names along with the
 subsidiary listing of cumulative tasks
 described earlier:
@@ -3304,7 +3155,6 @@ assignments section:
 Page T7-18 Function keys
 
 
---- PAGE 86 ---
 & Mary Johnson
 
 - Tasks/order processing/filing
@@ -3334,8 +3184,7 @@ you would produce condition number 1.
 Page T7-19 Function keys
 
 
---- PAGE 87 ---
-“ye ROM four integrated programs
+
 V. F5 (Drag) Lets you rapidly rearrange
 A. You can see where you are going.
 
@@ -3380,16 +3229,12 @@ affecting the former children.
 Page T7-20 Function keys
 
 
---- PAGE 88 ---
 5. You can use drag to promote a
 subheading or demote a heading to a lower
 level.
 
 Page T7-21 Function keys
 
-
---- PAGE 89 ---
-SPR four integrated programs
 
 B. Steps:
 
@@ -3438,7 +3283,6 @@ as their parent.
 Page T7-22 Function keys
 
 
---- PAGE 90 ---
 VI. F6 (Text) Accesses outline Text files
 A. What you can do:
 
@@ -3476,7 +3320,6 @@ editing capability.
 Page T7-23 Function keys
 
 
---- PAGE 91 ---
 THOUGHT
 Chapter eight
 F7 Select
@@ -3506,9 +3349,6 @@ expandcd or not.
 
 Page T8-1 F7 Select
 
-
---- PAGE 92 ---
-ye ROI four integrated programs
 
 D. About documents
 
@@ -3547,7 +3387,6 @@ cassette with a function key.
 Page T8-2 F7 Select
 
 
---- PAGE 93 ---
 Il. F7 (Sel) Selects a block of the outline
 
 A. Selects or defines any block.
@@ -3592,9 +3431,6 @@ key labels:
 
 Page T8-3 F7 Select
 
-
---- PAGE 94 ---
-au“ RONI four integrated programs
 
 Save Sort Copy Cut Exit
 1 2 3 4 5 6 7 8
@@ -3641,7 +3477,6 @@ single heading.
 Page T8-4 F7 Select
 
 
---- PAGE 95 ---
 c. If you have made an "Unbalanced
 sclection" the screen message won’t
 appear until after you have pressed one
@@ -3663,9 +3498,6 @@ cassette.
 
 Page T8-5 F7 Select
 
-
---- PAGE 96 ---
-au ROM four integrated programs
 
 Wl. F4 (Sort) Sorts any children
 under a heading
@@ -3712,7 +3544,6 @@ in numerical order.
 Page T8-6 F7 Select
 
 
---- PAGE 97 ---
 c. Mixed- If you have both numbers and
 Ietters the numbers will be sorted at
 the beginning of the list followed by
@@ -3720,9 +3551,6 @@ the remainder sorted alphabetically.
 
 Page T8-7 F7 Select
 
-
---- PAGE 98 ---
-au ROM four integrated programs
 
 IV. F5 (Copy) Copies the block
 for pasting later
@@ -3766,7 +3594,6 @@ movement keys.
 Page T8-8 F7 Select
 
 
---- PAGE 99 ---
 3. The only rule to remember when defining
 a block for copying is this one:
 
@@ -3796,9 +3623,6 @@ chapter.
 
 Page T8-9 F7 Select
 
-
---- PAGE 100 ---
-Su’RONI four integrated programs
 
 V. F6 (Cut) Removes selected text
 A. You get it all
@@ -3846,7 +3670,6 @@ wish to move larger blocks.
 Page T8-10 F7 Select
 
 
---- PAGE 101 ---
 D. Steps:
 
 1. Define (select) the block of outline
@@ -3889,9 +3712,6 @@ the PASTE function.
 
 Page T8-11 F7 Select
 
-
---- PAGE 102 ---
-ay ROM four integrated programs
 
 Vi. PASTE Lets you place cut or
 copied material anywhere.
@@ -3936,7 +3756,6 @@ the same.
 Page T8-12 F7 Select
 
 
---- PAGE 103 ---
 2. When you paste from a spreadsheet or a
 document however any part of an entry
 longer than 250 characters will be
@@ -3982,9 +3801,6 @@ workshect you will form a single
 
 Page T8-13 F7 Select
 
-
---- PAGE 104 ---
-SPYRO four integrated programs
 
 headline from all entries across a
 row.
@@ -4033,7 +3849,6 @@ discarded.
 Page T8-14 F7 Select
 
 
---- PAGE 105 ---
 2. Great for transferring Think Tank to
 THOUGHT.
 
@@ -4084,9 +3899,6 @@ merely want a particular part of a text
 Page T8-15 F7 Select
 
 
---- PAGE 106 ---
-SYPROSL tour integrated programs
-
 file to be a part of your outline then
 simply go into the outline and create
 an internal document.
@@ -4135,7 +3947,6 @@ beginning of subsequent paragraphs
 Page T8-16 F7 Select
 
 
---- PAGE 107 ---
 will result in further indention. It
 makes sense if you think of say,
 
@@ -4144,9 +3955,6 @@ spaces and then a sub to that four.
 
 Page T8-17 F7 Select
 
-
---- PAGE 108 ---
-SHPROM four integrated programs
 
 Vil. F3 (Save) saves a selected
 block to cassette
@@ -4197,7 +4005,6 @@ into TEXT.
 Rage T8-18 F7 Select
 
 
---- PAGE 109 ---
 a. The easicst way is to use the F2
 (Load) function in Create mode. File
 will be loaded dircctly off the tape
@@ -4247,8 +4054,7 @@ do CTRL up arrow to take you to the top
 Page T8-19 F7 Select
 
 
---- PAGE 110 ---
-SUPER ROM four integrated programs
+
 of the file.
 
 b. Press F7 (Set).
@@ -4285,7 +4091,6 @@ start and the file will be saved.
 Page T8-20 F7 Select
 
 
---- PAGE 111 ---
 THOUGHT
 
 Chapter Nine
@@ -4311,8 +4116,8 @@ different ways.
 Page T9-1 Printing
 
 
---- PAGE 112 ---
-TYRE four integrated programs
+SuperROM four 
+
 |. A host of options
 A. Instant two-button printing
 If the automatic settings are acceptable to
@@ -4353,7 +4158,6 @@ the indents, like TAB settings.
 Page T9-2 Printing
 
 
---- PAGE 113 ---
 automatic numbering at the bottom of cach
 page (called the page-number "footer").
 
@@ -4400,8 +4204,7 @@ had them.
 Page T9-3 Printing
 
 
---- PAGE 114 ---
-SUPER ROM four integrated programs
+
 Il. Automatic settings: The defaults
 A. Why they are there
 
@@ -4446,7 +4249,6 @@ continuous- form paper.
 Page T9-4 Printing
 
 
---- PAGE 115 ---
 4. With carriage return line feed OFF.
 
 This “answer” assumes that your printer
@@ -4485,9 +4287,6 @@ any levels.
 Page T9-5 Printing
 
 
---- PAGE 116 ---
-SYPRONI tour integrated programs
-
 lil. Instant two-button printing
 A. To the default settings
 
@@ -4513,7 +4312,6 @@ make another change.
 Page T9-6 Printing
 
 
---- PAGE 117 ---
 IV. Directions for two-button printing
 A. PRINT key
 
@@ -4554,9 +4352,6 @@ C. Error message
 Page T9-7 Printing
 
 
---- PAGE 118 ---
-ayy RC WI four integrated programs
-
 1. If conditions are not correct, you will
 see the message:
 
@@ -4583,7 +4378,6 @@ again by pressing the PRINT key.
 Page T9-8 Printing
 
 
---- PAGE 119 ---
 V. THOUGHT remembers
 
 A. That good memory
@@ -4630,9 +4424,6 @@ fun to see what you can do.
 Page T9-9 Printing
 
 
---- PAGE 120 ---
-SePROM four integrated programs
-
 The more you work with THOUGHT, the more
 different ways you are likely to find to
 
@@ -4642,7 +4433,6 @@ possibilities.
 Page T9-10 Printing
 
 
---- PAGE 121 ---
 Vl. Exercising your printing options:
 Prior to pressing F] (Go) you can change any setting
 so that instead of the default settings you can
@@ -4653,9 +4443,6 @@ of each function key option.
 
 Page T9-11 Printing
 
-
---- PAGE 122 ---
-up RON four integrated programs
 
 Vil. F3 (Outp) THOUGHT allows you
 flexible output.
@@ -4679,7 +4466,6 @@ as detailed in the next section.
 Page T9-12 Printing
 
 
---- PAGE 123 ---
 B. You have the following output choices with
 THOUGHT:
 
@@ -4726,9 +4512,6 @@ through THOUGHT directly to another
 
 Page T9-13 Printing
 
-
---- PAGE 124 ---
-SH/PROSI four integrated programs
 
 computer using an RS232 to RS232
 connection. To do this, you would have
@@ -4777,7 +4560,6 @@ ROM manual in Chapter Ii. Simply print
 Page T9-14 Printing
 
 
---- PAGE 125 ---
 your outline to a RAM file and then
 send it with WRITE ROM.
 
@@ -4809,9 +4591,6 @@ new filename.
 
 Page T9-15 Printing
 
-
---- PAGE 126 ---
-Dt TOY four integrated programs
 
 Vill. F4 (Lnsp) Changing your line spacing
 
@@ -4856,7 +4635,6 @@ changes or proceed to print with F1 (Go).
 Page T9-16 Printing
 
 
---- PAGE 127 ---
 5. Here is an example outline printed with
 a double spacing:
 Annual awards dinner
@@ -4874,13 +4652,10 @@ Super bowl weekend
 Page T9-17 Printing
 
 
---- PAGE 128 ---
 PRE
 IX.
 
 A.
-
-four integrated programs
 
 F5 (Paus) Pause between pages
 Steps
@@ -4919,7 +4694,6 @@ will begin again to print the next page.
 Page T9-18 Printing
 
 
---- PAGE 129 ---
 X. F6 (CRLF) Carriage Return Line Feed.
 A. Steps:
 1. Press F6 (CRLF)
@@ -4964,8 +4738,7 @@ to be set back the way it was for that
 Page T9-19 Printing
 
 
---- PAGE 130 ---
-uy ROM four integrated programs
+
 other computer to print properly.
 With the THOUGHT CRLF switch, you can send
 the CR plus the LF to the printer by just
@@ -4976,7 +4749,6 @@ around any more with the dip switch.
 Page T9-20 Printing
 
 
---- PAGE 131 ---
 XI. F1 (Go) Initiates printing.
 A. Steps
 
@@ -5010,8 +4782,7 @@ defaults.
 Page T9-21 Printing
 
 
---- PAGE 132 ---
-AYPROS tour integrated programs
+
 XII. The PAUSE key cancels
 
 the printing function
@@ -5052,7 +4823,6 @@ function keys.
 Page T9-22 Printing
 
 
---- PAGE 133 ---
 XII. F7 (Set) Provides other printing options.
 
 When you press F7 (Set) you see these new
@@ -5066,9 +4836,6 @@ discussion of each of these printing functions.
 
 Page T9-23 Printing
 
-
---- PAGE 134 ---
-4 RONI four integrated programs
 
 XIV. F1 (Left), F2 (Rt) Changes margins
 
@@ -5116,7 +4883,6 @@ you can make other changes if you wish.
 Page T9-24 Printing
 
 
---- PAGE 135 ---
 5. If you are ready to print simply press
 F8 (Exit) to return you to the main PRINT
 function key level, the press F1 (Go).
@@ -5156,8 +4922,7 @@ function key level, the press F1 (Go).
 Page T9-25 Printing
 
 
---- PAGE 136 ---
-au RONI four integrated programs
+
 XV. F3 (Ftr) Gives a page number footer.
 A. Turns on or off
 
@@ -5191,7 +4956,6 @@ each sucesSive page.
 Page T9-26 Printing
 
 
---- PAGE 137 ---
 XVI. F4 (Indt) Controls the indentation
 of your headings.
 A. Steps:
@@ -5223,9 +4987,6 @@ that is level 3.
 
 Page T9-27 Printing
 
-
---- PAGE 138 ---
-SYPRON four integrated programs
 
 B. Examples:
 
@@ -5272,7 +5033,6 @@ Company dining room?
 Page T9-28 Printing
 
 
---- PAGE 139 ---
 2. Notes:
 
 a. Notice that the levels that are
@@ -5319,9 +5079,6 @@ a. Many times you will want to print
 Page T9-29 Printing
 
 
---- PAGE 140 ---
-S+PRON four integrated programs
-
 unindented. This is especially true if
 you are printing an outline with many
 documents, on various sublevels or
@@ -5334,7 +5091,6 @@ b. Just do a tab width setting of 0.
 Page T9-30 Printing
 
 
---- PAGE 141 ---
 XVII. F5 (Nbrs) Numbers your headings
 
 A. How it works.
@@ -5380,8 +5136,7 @@ LLL.
 Page T9-31 Printing
 
 
---- PAGE 142 ---
-Su’KOn1 tour integrated programs
+
 levels so many people find 2 or 3 levels
 of numbering produces the best effect.
 
@@ -5409,7 +5164,6 @@ Reported conflicts
 Page T9-32 Printing
 
 
---- PAGE 143 ---
 XVII. F6 (Last) Print to whatever
 level you desire.
 A. From the cursor location
@@ -5450,9 +5204,6 @@ C. A word about levels:
 Page T9-33 Printing
 
 
---- PAGE 144 ---
-S4PRONI four integrated programs
-
 1. The printing default is to the tenth
 level. As you recall there is no limit on
 the number of levels you can have in your
@@ -5467,7 +5218,6 @@ is level 2, etc.
 Page T9-34 Printing
 
 
---- PAGE 145 ---
 D. Print all or just part of your outline
 
 1, Example 1: Sometimes it is nice to only
@@ -5511,8 +5261,7 @@ e. Then press F8, then F1 (Go).
 Page T9-35 Printing
 
 
---- PAGE 146 ---
-SUPER ROM four integrated programs
+
 f. Example of top level printout:
 
 Annual awards dinner
@@ -5567,8 +5316,7 @@ can print a part of your outline.
 Page T9-36 Printing
 
 
---- PAGE 147 ---
-SUPER ROM four integrated programs
+
 f. Example of top level printout:
 
 Annual awards dinner
@@ -5623,7 +5371,6 @@ can print a part of your outline.
 Page T9-36 Printing
 
 
---- PAGE 148 ---
 a. Printing a particular segment
 
 THOUGHT prints only from the cursor
@@ -5668,8 +5415,7 @@ a centered title line.
 Page T9-37 Printing
 
 
---- PAGE 149 ---
-SHPROM sour integrated programs
+
 d. Other children:
 
 If there are other children (or
@@ -5693,7 +5439,6 @@ temporary heading and print.
 Page T9-38 Printing
 
 
---- PAGE 150 ---
 XIX. F7 (Xtra) Extra line between levels
 A. Steps:
 1, Press function key F7 (Xtra)
@@ -5736,9 +5481,6 @@ blank line up to 10 levels.
 Page T9-39 Printing
 
 
---- PAGE 151 ---
-PRON four integrated programs
-
 C. Example:
 The following cxample shows an extra blank
 line for two levels. Notice we have also
@@ -5758,7 +5500,6 @@ Reported conflicts
 Page T9-40 Printing
 
 
---- PAGE 152 ---
 XX. SPECIAL FONTS -
 Printing to a RAM file
 then using WRITE ROM.
@@ -5792,9 +5533,6 @@ that wouldn’t be necessary.
 
 Page T9-41 Printing
 
-
---- PAGE 153 ---
-SHPRON four integrated programs
 
 B. The example:
 
@@ -5847,7 +5585,6 @@ Super bow! weekend Jan 19
 Page T9-42 Printing
 
 
---- PAGE 154 ---
 Local hotel?
 Company dining room?
 1.4. Invitations
@@ -5892,8 +5629,7 @@ We gather here today to honor those
 Page T9-43 Printing
 
 
---- PAGE 155 ---
-SUPER ROM four integrated programs
+
 people. The awards which we give are
 mere plaques of wood and metal, but
 they symbolize the respect and
@@ -5932,7 +5668,6 @@ guests of recipients
 Page T9-44 Printing
 
 
---- PAGE 156 ---
 THOUGHT
 Chapter ten
 Application examples
@@ -5977,10 +5712,7 @@ some ideas shown here that demonstrate how
 Page T10-1 Application examples
 
 
---- PAGE 157 ---
 WIR
-
-four integrated programs
 
 outlining can be used for concept
 development.
@@ -6012,7 +5744,6 @@ discussion of this feature.
 Page T10-2 Appiication examples
 
 
---- PAGE 158 ---
 B. Example:
 
 This could be a complete CT file or merely
@@ -6057,9 +5788,6 @@ one heading in a much larger outline.
 Page T10-3 Application examples
 
 
---- PAGE 159 ---
-WIPRO tour integrated programs
-
 - Abundance of AMA credentialed literature
 + Most diseases of civilization cured or prevented
 - Some forms of cancer
@@ -6077,7 +5805,6 @@ WIPRO tour integrated programs
 Page T10-4 Application examples
 
 
---- PAGE 160 ---
 Il. Document file management
 
 This is most suited for correspondence
@@ -6122,9 +5849,6 @@ The ability to bring in the DOS in an
 
 Page T10-5 Application examples
 
-
---- PAGE 161 ---
-SYPRONI four integrated programs
 
 instant just by pushing the little reset
 button on the back edge means you can use
@@ -6172,7 +5896,6 @@ way.
 Page T10-6 Application examples
 
 
---- PAGE 162 ---
 . ED1.DO
 . ED2.DO
 + Bill Thompson
@@ -6200,9 +5923,6 @@ AJAX1.DO
 
 Page T10-7 Application examples
 
-
---- PAGE 163 ---
-SHPROM four integrated programs
 
 lll. Preparing a paper using THOUGHT
 
@@ -6248,7 +5968,6 @@ for your first chapter:
 Page T10-8 Application examples
 
 
---- PAGE 164 ---
 2. Under any of the subheadings you can
 create a document or many documents if you
 like. When you are ready to print you can

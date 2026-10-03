@@ -1,5 +1,10 @@
+# Running tests
+- Always set up the VIRTUALT_PATH environment variable before running tests.
+
 # Tool Use Rules
 - NEVER use terminal commands (like PowerShell, Bash, Python scripts, or echo) to create, write, or modify files.
-- ALWAYS use your native tools ('editor', `write_to_file` or `replace_in_file` etc) to manage code and file creation (unless performing an actual conversion needing a script).
-- The 'editor' command only accepts a limited number of characters at a time. Break large file creation into multiple editor invokations with sequential chunks.
+- ALWAYS use your native tools ('editor', etc) to manage code and file creation (unless performing an actual conversion needing a script).
+- The 'editor' command only accepts a limited number of characters at a time. Break large file creation into multiple editor invocations with sequential chunks.
 - write_to_file, replace_in_file does not exist. Do not use them.
+- If you think a custom script is required to do an edit or create a file, even with these rules, ask first.
+- Avoid rewriting files in entirety. Instead prefer to create a diff and patch them with git-bash.

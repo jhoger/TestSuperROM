@@ -112,16 +112,19 @@ bool vt_process_launch(vt_process_handle_t handle,
 `
 
 **Parameters:**
-- handle - Process handle created by t_process_create
+- handle - Process handle created by vt_process_create
 - config - Process configuration
 
 **Returns:**
-- 	rue on success, alse on failure
+- true on success, false on failure
 
 **Notes:**
 - On Windows, uses CreateProcess with proper path handling
-- On POSIX systems, uses ork/exec with xecvp
-- The process will be launched with the specified port
+- On POSIX systems, uses fork/exec with execvp
+- If config->port is 0, an available port will be automatically assigned by searching for free ports
+- If config->port is non-zero, that specific port will be used
+- Use vt_process_get_port() to retrieve the actual port used after launch
+- Available auto-assignment ports: 6166, 6167, 6168, 6169, 6170
 
 ---
 
@@ -139,8 +142,8 @@ bool vt_process_wait_for_ready(vt_process_handle_t handle,
 - 	imeout_ms - Maximum wait time in milliseconds (0 = use default)
 
 **Returns:**
-- 	rue if process is ready within timeout
-- alse if timeout expired or process failed to start
+- true if process is ready within timeout
+- false if timeout expired or process failed to start
 
 **Notes:**
 - Attempts to connect to the socket to verify readiness
@@ -162,8 +165,8 @@ bool vt_process_connect(vt_process_handle_t handle,
 - socket_handle - vt_socket handle for connection
 
 **Returns:**
-- 	rue on successful connection
-- alse if connection failed
+- true on successful connection
+- false if connection failed
 
 **Notes:**
 - Uses the vt_socket library for connection
@@ -196,8 +199,8 @@ bool vt_process_terminate(vt_process_handle_t handle);
 - handle - Process handle
 
 **Returns:**
-- 	rue on successful termination
-- alse if process was not running or termination failed
+- true on successful termination
+- false if process was not running or termination failed
 
 **Notes:**
 - Sends termination command to VirtualT via socket if connected
@@ -258,8 +261,8 @@ bool vt_process_get_status(vt_process_handle_t handle,
 - status - Pointer to status structure to fill
 
 **Returns:**
-- 	rue if status was retrieved
-- alse if handle is invalid
+- true if status was retrieved
+- false if handle is invalid
 
 ---
 
@@ -292,8 +295,8 @@ bool vt_process_is_running(vt_process_handle_t handle);
 - handle - Process handle
 
 **Returns:**
-- 	rue if process is running
-- alse if process is not running
+- true if process is running
+- false if process is not running
 
 
 
@@ -400,7 +403,7 @@ test.rom\,
     };
     
     if (!vt_process_launch(process, &config)) {
-        fprintf(stderr, \Error:
+        fprintf(stderr, "Error:
 Could
 not
 launch
@@ -415,13 +418,7 @@ VirtualT\\n\);
             break;
         }
         if (attempts == 4) {
-            fprintf(stderr, \Error:
-Process
-not
-ready
-after
-10
-seconds\\n\);
+            fprintf(stderr, "Error: Process not ready after 10 seconds\n");
             vt_process_terminate(process);
             vt_process_destroy(process);
             return false;
@@ -499,7 +496,7 @@ If the environment variable is not set, the test driver should exit with an erro
 ### Resource Cleanup
 
 When vt_process_terminate is called:
-1. If connected via socket, sends 	erminate command to VirtualT
+1. If connected via socket, sends terminate command to VirtualT
 2. Closes socket connection
 3. Terminates the process
 4. Cleans up any allocated memory
@@ -527,4 +524,7 @@ cmake --build build --target vt_process_tests
 
 - [Socket.md](Socket.md) - VirtualT socket interface documentation
 - [vt_socket.h](../Library/vt_socket/vt_socket.h) - Socket library header
+
+
+
 

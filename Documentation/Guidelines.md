@@ -8,7 +8,7 @@ All tests should be runnable via a cmake command (do not use the Unity Ruby test
 
 All tests are to be written in C
 
-Useful high-level testing operationd should be maintained in a layer and used to keep tests high-level and maintainable. This code should be kept in the Common directory. Eventually common modules may be used for testing other Model T software
+Useful high-level testing operations should be maintained in a layer and used to keep tests high-level and maintainable. This code should be kept in the Common directory. Eventually common modules may be used for testing other Model T software
 
 All tests are to execute on a virtual PC-8201a via the socket (telnet) feature of Virtual T, an emulator for the TRS-80 Model 100 family of (vintage) laptops. Also referred to collectively as the Model T.
 

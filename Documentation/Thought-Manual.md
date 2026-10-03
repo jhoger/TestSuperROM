@@ -603,7 +603,12 @@ the Installation chapter), or you need to
 call it the first time by going into BASIC
 and typing
 
+
+On the Model 100:
 Call 63012 then press ENTER.
+
+On the NEC PC-8201A:
+EXEC 62394
 
 C. After a moment you should see the PCSG
 Copyright notice and the SUPER ROM menu with
@@ -1623,7 +1628,7 @@ As you recall you exited from Create mode by simply
 pressing F8 or ENTER on an empty line. This puts you
 into Review/Revise mode. \
 
-|. What you can do in Review/Revise
+I. What you can do in Review/Revise
 
 A. The Review/Revise or edit mode allows you
 versatile review capabilities of what you
@@ -2935,7 +2940,7 @@ are both replaced by the same & sign.
 
 D. Catalog items:
 
-|. The first example is an excerpt from a
+I. The first example is an excerpt from a
 seed store stocking plan.
 
 a. We want to list all the seeds and
@@ -2945,7 +2950,7 @@ the price of each.
 b. We want to list all manufacturers of
 seeds that our store carries, and under
 each manufacturer a list of the
-varictics of secds he supplies along
+varieties of seeds he supplies along
 with the current price.
 
 This way we can,
@@ -3063,10 +3068,10 @@ completed.
 Page T7-16 Function keys
 
 
-2. The following cxample shows how cloning
+2. The following example shows how cloning
 can be used for staff assignments.
 
-Observe that cach person’s name has
+Observe that each person’s name has
 subsidiary to it, a listing of the duties
 
 that are assigned. This is a Strictly
@@ -3076,9 +3081,9 @@ yourself better organized. The purpose of
 this is that when you clone someone’s name
 to assign him to a new task you will be
 
-able to sce what you have already made him
+able to see what you have already made him
 responsible for. You could make this duty
-rostcr as a subheading to each name if you
+roster as a subheading to each name if you
 like, but remember that you will have to
 type in these job reminders by or under
 
@@ -3788,7 +3793,7 @@ E. Pasting from a spreadsheet
 Lucid worksheet into a THOUGHT outline in
 order to create headings and subheadings.
 
-If you necd a worksheet in your outline it
+If you need a worksheet in your outline it
 really makes more sense to PASTE into a
 document which is part of the outline.
 
@@ -4118,7 +4123,7 @@ Page T9-1 Printing
 
 SuperROM four 
 
-|. A host of options
+I. A host of options
 A. Instant two-button printing
 If the automatic settings are acceptable to
 you - and to the type of printer you are
@@ -4158,7 +4163,7 @@ the indents, like TAB settings.
 Page T9-2 Printing
 
 
-automatic numbering at the bottom of cach
+automatic numbering at the bottom of each
 page (called the page-number "footer").
 
 7. Single, double, triple or quadruple
@@ -4383,7 +4388,7 @@ V. THOUGHT remembers
 A. That good memory
 
 1, Keep in mind that THOUGHT automatically
-remembers whatever change you have madc to
+remembers whatever change you have made to
 any variable . You don’t have to reset a
 change each time you go to the file.
 
@@ -4416,7 +4421,7 @@ know that THOUGHT will remember it every
 time you print the file.
 
 2. Some of them are because you want to -
-when you necd the information in a
+when you need the information in a
 different way, or someone else needs only
 a certain part of it, or just because it’s
 fun to see what you can do.
@@ -4493,7 +4498,7 @@ of transmission configurations much
 clearer.
 
 c. If you will be printing to a serial
-printer, you necd to consult the
+printer, you need to consult the
 printer manual to get the proper
 transmission configuration. Typical
 ones are 97NIE or 87NID.
@@ -4586,7 +4591,7 @@ c. Press ENTER. You will print to this
 file until output is changed.
 Remember, if you print to a file again
 with just the filename, you will write
-over the previous copy. Change toa
+over the previous copy. Change to a
 new filename.
 
 Page T9-15 Printing
@@ -4602,7 +4607,7 @@ seventh line clears, and the screen says:
 Line spacing: 1
 
 2. Backspace out the default and type in
-any number from | to 4.
+any number from 1 to 4.
 
 B. What you can do:
 
@@ -4614,7 +4619,7 @@ corrections or additions between the
 lines.
 
 Then you can quickly change "Line spacing"
-back to | for your single spaced final
+back to 1 for your single spaced final
 copy.
 
 2. Often printers will have double space
@@ -4626,7 +4631,7 @@ THOUGHT.
 3. You have text editing capabilities to
 backspace and type in your new setting.
 
-4. When you have completed your change,,
+4. When you have completed your change,
 press ENTER or any other function key to
 record it. Immediately the seventh line
 clears and you are ready to make other
@@ -4839,7 +4844,7 @@ Page T9-23 Printing
 
 XIV. F1 (Left), F2 (Rt) Changes margins
 
-Function keys | and 2 are very simple controls
+Function keys I and 2 are very simple controls
 that allow you to type in the number of spaces
 you would like the margins to be. You have full
 editing capability to backspace and type in new
@@ -4981,7 +4986,7 @@ levels indented.
 
 4. Remember that we call the title
 headline as level 0 and the first heading
-as level 1. A subheading to a level |
+as level 1. A subheading to a level I
 heading is level 2 and a subheading to
 that is level 3.
 
@@ -5114,17 +5119,17 @@ etc.
 representations showing the relative
 degree of subordination.
 
-a. The next‘ levels under | are:
+a. The next‘ levels under 1 are:
 
 1.
 2,
-3. ete.
+3. etc.
 
 b. The levels under 1.1. are:
 
 LL.
 1.2,
-1.3. ete.
+1.3. etc.
 
 c. If you were on the fifth level under
 heading one it would be:
@@ -5474,7 +5479,7 @@ Create window (with a ? in frort).
 
 3. Test the F7 (Xtra) feature, printing
 out your document with the Xtra feature
-for different levels starting with | and
+for different levels starting with I and
 then maybe 2 or 3. You can have an extra
 blank line up to 10 levels.
 
@@ -5482,7 +5487,7 @@ Page T9-39 Printing
 
 
 C. Example:
-The following cxample shows an extra blank
+The following example shows an extra blank
 line for two levels. Notice we have also
 numbered two levels:
 Annual awards dinner
@@ -5700,7 +5705,7 @@ all but the project plan because it was
 illustrated quite aptly in the preceding
 chapters of the manual.
 
-|. The Business plan
+I. The Business plan
 A. We illustrate only a portion.
 1. The example which follows is the
 "Objectives" portion of a business plan in
@@ -5710,9 +5715,6 @@ in the brain storming phase. There are
 some ideas shown here that demonstrate how
 
 Page T10-1 Application examples
-
-
-WIR
 
 outlining can be used for concept
 development.
@@ -5853,7 +5855,7 @@ Page T10-5 Application examples
 instant just by pushing the little reset
 button on the back edge means you can use
 the disk drive as an active interface with
-your Modc! 100. You can kill files out of
+your Model 100. You can kill files out of
 RAM or bring them in instantly.
 
 5. Whenever you need to recall a
@@ -5912,9 +5914,9 @@ Page T10-6 Application examples
 . GAS2.DO
 + Electricity
 + Department stores
-+ House remodling
++ House remodeling
 + Business
-+ Empolyees
++ Employees
 + Suppliers
 AJAX1.DO
 . ACME1.DO
@@ -5949,8 +5951,8 @@ B. The example
 have an outline something of this order
 for your first chapter:
 
-+ Murder, He Word Processed
-+ Chapter |
++ Murder, He Word-Processed
++ Chapter 1
 + Description of countryside
 . CHAPIA.DO
 + Bill’s thoughts

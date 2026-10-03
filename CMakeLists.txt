@@ -48,6 +48,21 @@ if(MSVC)
     target_link_libraries(vt_process ws2_32)
 endif()
 
+# Add static library for vt_interact
+add_library(vt_interact STATIC
+    Library/vt_interact/vt_interact.c
+)
+
+# Include paths for vt_interact
+target_include_directories(vt_interact PUBLIC
+    ${CMAKE_SOURCE_DIR}/Library/vt_interact
+    ${CMAKE_SOURCE_DIR}/Library/vt_process
+    ${CMAKE_SOURCE_DIR}/Library/vt_socket
+)
+
+# Link vt_interact with dependencies
+target_link_libraries(vt_interact vt_process vt_socket)
+
 # Add Unity test framework as a static library
 add_library(unity STATIC
     Tools/unity/src/unity.c

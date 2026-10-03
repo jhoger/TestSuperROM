@@ -72,9 +72,115 @@ Occasionally VirtualT needs to send a message to the client to indicate an event
 event, event_name, event_data \n
 ```
 
+The async events reported by VirtualT 1.0 are:
+- `event, break, PC=address` - Indicates a breakpoint was encountered
+- `event, lcdwrite, (r,c),data` - Reports data written to the LCD at (r,c)
+
 ## Commands
 
-### CPU Control
+### Emulation Control Commands
+
+#### `halt (h)`
+- **Parameters:** none
+- **Returns:** Ok
+- Halts execution of the 8085 CPU. If the CPU is already halted, this command has no effect.
+
+#### `run (r)`
+- **Parameters:** none
+- **Returns:** Ok
+- Resumes the CPU execution after a halt command or a breakpoint. If the CPU is already running, this operation has no affect.
+
+#### `step (s)`
+- **Parameters:** [count]
+- **Returns:** Parameter Error, Ok
+- Causes the CPU to execute one or more instructions beginning at the current Program Counter (PC) location. If no parameter is provided, a single instruction is executed.
+
+#### `step_over (so)`
+- **Parameters:** [count]
+- **Returns:** Parameter Error, Ok
+- Causes the CPU to step over any RST, CALL, CZ, CNZ, etc. instruction and return control at the next instruction. The subroutine which is the target of the RST, CALL, etc. will be executed entirely.
+
+#### `status`
+- **Parameters:** none
+- **Returns:** Current model and CPU status, Ok
+- Returns the current model and CPU running status in the following format:
+  ```
+  Model=m100, CPU running
+  Model=pc8201, CPU halted
+  ```
+
+#### `reset`
+- **Parameters:** none
+- **Returns:** Ok
+- Performs an emulation system reset. Does not clear emulation memory.
+
+#### `cold_boot`
+- **Parameters:** none
+- **Returns:** Ok
+- This command is used to cold boot the current emulation.
+
+#### `terminate`
+- **Parameters:** none
+- **Returns:** Ok
+- Terminates the VirtualT session and forces a clean shutdown (RAM and Preferences will be saved).
+
+#### `model`
+- **Parameters:** m100, pc8201, m200
+- **Returns:** Ok
+- Sets the emulated model.
+
+#### `cpu`
+- **Parameters:** friendly, fast, normal
+- **Returns:** Ok
+- Sets the emulation speed to the specified value. Note that only one option is given for the CPU Friendly speed but the Speed menu item provides two selections. The friendly option in this command will set the speed to match the menu item "CPU Friendly".
+
+#### `radix`
+- **Parameters:** "10", "16"
+- **Returns:** Parameter error, Ok
+- Specifies the radix that should be used when reporting addresses and data to the socket interface. The radix parameter does not affect input data. Input data will be parsed using standard C regardless of the radix setting. The default radix is 10 (decimal).
+
+#### `load`
+- **Parameters:** filename
+- **Returns:** Load Error, Ok
+- Loads the specified file from the Host OS into the emulated model's "filesystem". The file is loaded relative to the VirtualT working directory. As with any "Load from Host" operation, this will force a system reset after the load is complete.
+
+#### `optrom`
+- **Parameters:** ["unload", filename]
+- **Returns:** none, Current option ROM filename, Invalid hex file, File not found, Ok
+- If the command is sent with no parameters, VirtualT returns the name of the currently loaded option ROM or "none" if no option ROM is loaded. If the parameter "unload" is sent, VirtualT will unload the option ROM. If a filename is provided, that file will be loaded into the Option ROM memory space, or an error will be returned if it cannot be loaded. Unlike the menu item "Load / Unload option ROM", this command does not reset the CPU after loading or unloading a ROM.
+
+#### `in`
+- **Parameters:** portNumber
+- **Returns:** Parameter error, Port read value, Ok
+- Reads the value of the specified port and returns the value using the current selected radix.
+
+#### `out`
+- **Parameters:** address, value
+- **Returns:** Parameter error, Ok
+- Performs a CPU 'out' instruction to the specified port, writing the specified data. The out instruction is performed asynchronously from the emulation.
+
+#### `key`
+- **Parameters:** Keystroke list
+- **Returns:** Parameter error, Ok
+- Simulates keystroke events on the keyboard. The keystroke list can be any length and can consist of quoted strings and/or special key symbols as described below.
+
+**Keystroke Format:**
+- Quoted strings: `"test"` - types the text
+- Special keys: `enter`, `shift`, `code`, `graph`, `grph`, `esc`, `ctrl`, `tab`, `f1`-`f8`, `paste`, `label`, `print`, `pause`, `left`, `right`, `up`, `down`, `space`, `insert`, `ins`, `delete`, `del`, `bksp`, `back`, `backspace`, `home`, `end`, `pgup`, `pageup`, `pgdn`, `pagedown`
+- Chain keys with `+`: `ctrl+c`, `graph+a`
+- Chain sequences: `right enter "test.do" f8`
+- To specify the quote character as input in a quoted string, precede the quote with the `\` character. To specify the `\` character type `\\`.
+
+**Examples:**
+```
+key ctrl+c
+key graph+a
+key right enter "test.do" enter "This is data for \"TEXT\"" f8
+```
+
+---
+
+### Register Operations
 
 #### `halt (h)`
 - **Parameters:** none
@@ -110,6 +216,11 @@ event, event_name, event_data \n
 - **Returns:** Ok
 - Terminates the VirtualT session and forces a clean shutdown (RAM and Preferences will be saved).
 
+#### `reset`
+- **Parameters:** none
+- **Returns:** Ok
+- Performs an emulation system reset. Does not clear emulation memory.
+
 ---
 
 ### Register Operations
@@ -124,20 +235,25 @@ event, event_name, event_data \n
 - **Returns:** Register value in decimal, Ok
 - Returns the value of the specified register pair
 
-#### `radix [8|10|16]`
-- **Parameters:** 8, 10, or 16
+#### `radix`
+- **Parameters:** "8", "10", "16"
 - **Returns:** Ok
 - Sets the display radix for register values
 
 #### `write_reg (wr)`
 - **Parameters:** a=xx b=xx c=xx d=xx e=xx h=xx l=xx m=xx or bc=xx de=xx hl=xx sp=xx pc=xx
 - **Returns:** Ok
-- Writes data to one or more CPU registers
+- Writes data to one or more CPU registers. Register write parameters must be separated by spaces and must follow the specified syntax. Input values will be parsed using standard C notation.
 
 #### `write_mem (wm)`
 - **Parameters:** address data [data data ...]
 - **Returns:** Ok
-- Writes data to the CPU's 64K memory space starting at the specified address
+- Writes data to the CPU's 64K memory space starting with the specified address. For Base Memory emulation, writes to the System ROM are allowed using this command. For ReMem memory emulation, write operations will be dictated by the READ_ONLY bit for the address block being written.
+No provisions are made by this command to halt the CPU while writing multiple memory locations.
+
+---
+
+### Memory Operations
 
 ---
 
@@ -196,9 +312,46 @@ event, event_name, event_data \n
 - **Returns:** Ok
 - Sets the emulated model
 
+#### `cpu [friendly|fast|normal]`
+- **Parameters:** friendly, fast, or normal
+- **Returns:** Ok
+- Sets the CPU speed
+
+#### `radix`
+- **Parameters:** "10", "16"
+- **Returns:** Parameter error, Ok
+- Specifies the radix that should be used when reporting addresses and data to the
+  socket interface. The default radix is 10 (decimal).
+
+#### `reset`
+- **Parameters:** none
+- **Returns:** Ok
+- Performs an emulation system reset. Does not clear emulation memory.
+
+#### `cold_boot`
+- **Parameters:** none
+- **Returns:** Ok
+- Performs a cold boot of the current emulation.
+
+#### `terminate`
+- **Parameters:** none
+- **Returns:** Ok
+- Terminates the VirtualT session and forces a clean shutdown (RAM and Preferences will be saved).
+
+#### `in`
+- **Parameters:** portNumber
+- **Returns:** Parameter error, Port read value, Ok
+- Reads the value of the specified port and returns the value using the current selected radix.
+
+#### `out`
+- **Parameters:** address, value
+- **Returns:** Parameter error, Ok
+- Performs a CPU 'out' instruction to the specified port, writing the specified data.
+  The out instruction is performed asynchronously from the emulation.
+
 ---
 
-### LCD Operations
+### File Operations
 
 #### `lcd`
 - **Parameters:** row col data
@@ -212,7 +365,7 @@ event, event_name, event_data \n
 
 ---
 
-### File Operations
+### Key Input (PC-8201A Keyboard)
 
 #### `load_rom`
 - **Parameters:** filename
@@ -250,7 +403,40 @@ event, event_name, event_data \n
 
 ---
 
-## Notes
+### Key Input (PC-8201A Keyboard)
+
+#### `key`
+- **Parameters:** Keystroke list
+- **Returns:** Parameter error, Ok
+- Simulates keystroke events on the keyboard. The keystroke list can be any length
+  and can consist of quoted strings and/or special key symbols.
+
+**Keystroke Format:**
+- Quoted strings: `"test"` - types the text
+- Special keys: `enter`, `shift`, `graph`, `esc`, `ctrl`, `tab`, `f1`-`f8`, `left`, `right`, `up`, `down`, `space`, `insert`, `delete`, `backspace`, `home`, `end`, `pgup`, `pgdn`
+- Chain keys with `+`: `ctrl+c`, `graph+a`
+- Chain sequences: `right enter "test.do" f8`
+
+**Examples:**
+```
+key ctrl+c
+key graph+a
+key right enter "test.do" enter "This is data for \"TEXT\"" f8
+```
+
+#### `keydown`
+- **Parameters:** Key name
+- **Returns:** Ok
+- Presses and holds a key
+
+#### `keyup`
+- **Parameters:** Key name
+- **Returns:** Ok
+- Releases a held key
+
+---
+
+### LCD Operations
 
 - No provisions are made by memory write commands to halt the CPU while writing multiple locations
 - Input values are parsed using standard C notation (hex with 0x prefix, octal with 0 prefix)

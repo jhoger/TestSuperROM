@@ -50,6 +50,16 @@ static bool vt_process_create_process(const vt_process_config_t* config, VT_PROC
     if (path_len > 0 && virtualt_path[path_len - 1] == '\\') {
         if (path_len + 12 < sizeof(virtualt_path)) {
             strncpy_s(virtualt_path + path_len, sizeof(virtualt_path) - path_len, "virtualt.exe", 12);
+            /* Reset path_len after appending */
+            path_len = strlen(virtualt_path);
+        }
+    }
+    
+    /* Check if virtualt_path already has .exe extension */
+    if (path_len < 4 || _stricmp(virtualt_path + path_len - 4, ".exe") != 0) {
+        /* Append .exe if not present */
+        if (path_len + 4 < sizeof(virtualt_path)) {
+            strncat_s(virtualt_path, sizeof(virtualt_path), ".exe", 4);
         }
     }
     
@@ -69,9 +79,17 @@ static bool vt_process_create_process(const vt_process_config_t* config, VT_PROC
         GetCurrentDirectoryA(sizeof(working_dir), working_dir);
     }
     
+    /* Debug logging */
+    /* printf("DEBUG: virtualt_path = '%s'\n", virtualt_path); */
+    /* printf("DEBUG: command_line = '%s'\n", command_line); */
+    /* printf("DEBUG: working_dir = '%s'\n", working_dir); */
+    
     memset(&startup_info, 0, sizeof(startup_info));
     startup_info.cb = sizeof(startup_info);
     
+    /* Try with command_line as lpApplicationName to avoid path resolution issues */
+    /* CreateProcessA first param is lpApplicationName, second is lpCommandLine */
+    /* We need to pass the full command line (with -p port) as the second parameter */
     if (CreateProcessA(NULL, command_line, NULL, NULL, FALSE, 0, NULL, working_dir, &startup_info, &process_info)) {
         *process_handle = process_info.hProcess;
         CloseHandle(process_info.hThread);
@@ -80,7 +98,7 @@ static bool vt_process_create_process(const vt_process_config_t* config, VT_PROC
     
     /* Debug: Log error information when CreateProcess fails */
     DWORD error = GetLastError();
-    snprintf(last_error, sizeof(last_error), "CreateProcess failed with error %lu for command: %s", error, command_line);
+    snprintf(last_error, sizeof(last_error), "CreateProcess failed with error %lu for path: %s", error, virtualt_path);
     
     return false;
 }

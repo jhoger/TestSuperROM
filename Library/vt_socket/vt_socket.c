@@ -171,6 +171,7 @@ static bool parse_response(const char* response, char* response_out, size_t resp
     /* Find the "Ok" line and capture all preceding data lines */
     bool found_ok = false;
     size_t out_pos = 0;
+    bool found_ok_in_loop = false;
 
     for (int j = 0; j < num_lines; j++) {
         char* line = lines[j];
@@ -182,9 +183,17 @@ static bool parse_response(const char* response, char* response_out, size_t resp
             continue;
         }
 
-        /* If this is the "Ok" line, we're done */
-        if (strstr(line, "Ok") != NULL) {
+        /* If this is the "Ok" line, we're done (case-insensitive) */
+        /* Convert to uppercase for comparison */
+        char line_upper[1024];
+        for (int k = 0; line[k]; k++) {
+            line_upper[k] = (line[k] >= 'a' && line[k] <= 'z') ? (line[k] - 32) : line[k];
+        }
+        line_upper[strlen(line)] = '\0';
+
+        if (strstr(line_upper, "OK") != NULL) {
             found_ok = true;
+            found_ok_in_loop = true;
             break;  /* "Ok" marks the end of the response */
         }
 
@@ -197,6 +206,13 @@ static bool parse_response(const char* response, char* response_out, size_t resp
             memcpy(response_out + out_pos, line, line_len);
             out_pos += line_len;
         }
+    }
+
+    /* If we found "Ok" but the output is empty, add "Ok" to the response
+     * so callers can check for it */
+    if (found_ok && out_pos == 0 && response_size > 3) {
+        strcpy_s(response_out, response_size, "Ok");
+        out_pos = 2;
     }
 
     response_out[out_pos] = '\0';

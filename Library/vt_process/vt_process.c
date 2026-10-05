@@ -45,27 +45,48 @@ static bool vt_process_create_process(const vt_process_config_t* config, VT_PROC
         }
     }
     
-    /* If virtualt_path ends with backslash, append virtualt.exe */
+    /* Handle both forward and backward slashes for path separators */
     size_t path_len = strlen(virtualt_path);
-    if (path_len > 0 && virtualt_path[path_len - 1] == '\\') {
-        if (path_len + 12 < sizeof(virtualt_path)) {
-            strncpy_s(virtualt_path + path_len, sizeof(virtualt_path) - path_len, "virtualt.exe", 12);
+    char last_char = (path_len > 0) ? virtualt_path[path_len - 1] : '\0';
+
+    /* If virtualt_path ends with slash, append platform-specific executable name */
+    if (last_char == '\\' || last_char == '/') {
+        #ifdef _WIN32
+        const char* exe_name = "virtualt.exe";
+        #else
+        const char* exe_name = "virtualt";
+        #endif
+        if (path_len + strlen(exe_name) < sizeof(virtualt_path)) {
+            strncpy_s(virtualt_path + path_len, sizeof(virtualt_path) - path_len, exe_name, strlen(exe_name));
             /* Reset path_len after appending */
             path_len = strlen(virtualt_path);
         }
-    }
-    
-    /* Check if virtualt_path already has .exe extension */
-    if (path_len < 4 || _stricmp(virtualt_path + path_len - 4, ".exe") != 0) {
-        /* Append .exe if not present */
-        if (path_len + 4 < sizeof(virtualt_path)) {
-            strncat_s(virtualt_path, sizeof(virtualt_path), ".exe", 4);
+    } else {
+        /* Path does not end with slash - check if it already has executable extension */
+        #ifdef _WIN32
+        if (path_len < 4 || _stricmp(virtualt_path + path_len - 4, ".exe") != 0) {
+            /* No .exe extension - append it */
+            if (path_len + 4 < sizeof(virtualt_path)) {
+                strncat_s(virtualt_path, sizeof(virtualt_path), ".exe", 4);
+            }
         }
+        #else
+        if (path_len < 3 || _stricmp(virtualt_path + path_len - 3, ".so") != 0) {
+            /* On Linux, could be .so, .out, or no extension - treat as-is */
+            /* No extension check needed for simple cases */
+        }
+        #endif
     }
     
-    snprintf(command_line, sizeof(command_line), "\"%s\" -p %d", virtualt_path, port);
-    
-    char* last_slash = strrchr(virtualt_path, '\\');
+    snprintf(command_line, sizeof(command_line), "\"%s\" -p %d%s", virtualt_path, port, config->headless ? " -n" : "");
+
+    /* Handle both forward and backward slashes when extracting directory */
+    char* last_backslash = strrchr(virtualt_path, '\\');
+    char* last_forwardslash = strrchr(virtualt_path, '/');
+
+    /* Use the rightmost slash of either type */
+    char* last_slash = (last_backslash > last_forwardslash) ? last_backslash : last_forwardslash;
+
     if (last_slash) {
         size_t dir_len = last_slash - virtualt_path + 1;
         if (dir_len < sizeof(working_dir)) {
@@ -76,6 +97,7 @@ static bool vt_process_create_process(const vt_process_config_t* config, VT_PROC
             GetCurrentDirectoryA(sizeof(working_dir), working_dir);
         }
     } else {
+        /* No slash found, use current directory */
         GetCurrentDirectoryA(sizeof(working_dir), working_dir);
     }
     
@@ -105,7 +127,14 @@ static bool vt_process_create_process(const vt_process_config_t* config, VT_PROC
 
 static bool vt_process_destroy_process(VT_PROCESS_PID process_handle) {
     if (!process_handle) return true;
-    return TerminateProcess(process_handle, 0);
+
+    /* First try to terminate the process */
+    bool terminated = TerminateProcess(process_handle, 0);
+
+    /* Wait a moment for cleanup */
+    Sleep(200);
+
+    return terminated;
 }
 
 #else
@@ -240,18 +269,25 @@ void vt_process_disconnect(vt_process_handle_t handle) {
 bool vt_process_terminate(vt_process_handle_t handle) {
     vt_process_internal_t* internal = (vt_process_internal_t*)handle;
     if (!internal || !internal->is_running) return false;
-    
+
     if (internal->socket_handle) {
         vt_socket_disconnect(internal->socket_handle);
         vt_socket_destroy(internal->socket_handle);
         internal->socket_handle = NULL;
     }
-    
+
+    /* Small delay to allow process to settle */
+#ifdef _WIN32
+    Sleep(100);
+#else
+    usleep(100000);
+#endif
+
     if (internal->process_handle) {
         vt_process_destroy_process(internal->process_handle);
         internal->process_handle = NULL;
     }
-    
+
     internal->is_running = false;
     internal->is_connected = false;
     return true;

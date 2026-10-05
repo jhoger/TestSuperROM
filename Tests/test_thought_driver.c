@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
     /* Register tests - print module */
     UnityAddTest(test_print_format_options, "test_print_format_options", TEST_LINE_NUM);
     UnityAddTest(test_print_defaults, "test_print_defaults", TEST_LINE_NUM);
-    
+
     /* Run all tests */
     UnityRun();
     

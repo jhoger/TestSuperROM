@@ -94,6 +94,16 @@ bool vt_socket_get_lcd(vt_socket_handle_t handle, char lcd_state[VT_LCD_MAX_ROWS
 bool vt_socket_wait_for_lcd_update(uint32_t timeout_ms, vt_lcd_update_t* lcd_update);
 
 /* ============================================================================
+ * Event Queue Functions
+ * ========================================================================= */
+
+/* Check if there are pending events */
+bool vt_socket_has_pending_events(void);
+
+/* Pop the next event from the queue */
+bool vt_socket_pop_event(char* event, size_t size);
+
+/* ============================================================================
  * High-Level Commands
  * ========================================================================= */
 

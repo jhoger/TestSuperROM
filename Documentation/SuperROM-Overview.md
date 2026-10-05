@@ -742,8 +742,10 @@ Page S2-2 Installation
 B. When you see the Ok prompt, type in the
 following,
 
-171/00 CALL 63012
+100/102: CALL 63012
 T200 CALL 27¥01,,0
+NEC PC-8201A: EXEC 62394
+
 C. Press ENTER. After a moment you should see
 
 the PCSG Copyright notice and the SUPER ROM

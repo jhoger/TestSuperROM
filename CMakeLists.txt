@@ -79,6 +79,16 @@ add_executable(vt_process_tests
     Common/thought_test_common.c
 )
 
+target_include_directories(vt_process_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/Tests
+    ${CMAKE_SOURCE_DIR}/Common
+    ${CMAKE_SOURCE_DIR}/Library/vt_process
+    ${CMAKE_SOURCE_DIR}/Library/vt_socket
+    ${CMAKE_SOURCE_DIR}/Tools/unity/src
+)
+
+target_link_libraries(vt_process_tests vt_process vt_socket unity)
+
 # Test executable for VirtualT integration tests
 add_executable(vt_virtual_t_tests
     Tests/test_vt_virtual_t.c
@@ -93,15 +103,59 @@ target_include_directories(vt_virtual_t_tests PRIVATE
 
 target_link_libraries(vt_virtual_t_tests vt_process vt_socket unity)
 
-target_include_directories(vt_process_tests PRIVATE
+# Test executable for vt_interact (BASIC program test)
+add_executable(vt_interact_tests
+    Tests/test_vt_interact.c
+)
+
+# Test executable for single test debugging
+add_executable(test_single
+    Tests/test_single.c
+)
+
+# Test executable for THOUGHT integration tests
+add_executable(thought_integration_tests
+    Tests/test_thought_integration.c
+    Common/thought_test_common.c
+)
+
+target_include_directories(vt_interact_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/Tests
-    ${CMAKE_SOURCE_DIR}/Common
+    ${CMAKE_SOURCE_DIR}/Library/vt_interact
     ${CMAKE_SOURCE_DIR}/Library/vt_process
     ${CMAKE_SOURCE_DIR}/Library/vt_socket
     ${CMAKE_SOURCE_DIR}/Tools/unity/src
 )
 
-target_link_libraries(vt_process_tests vt_process vt_socket unity)
+target_link_libraries(vt_interact_tests vt_interact vt_process vt_socket unity)
+
+target_link_libraries(test_single vt_interact vt_process vt_socket unity)
+
+# Test executable for single keystrokes debugging
+add_executable(test_single_keystrokes
+    Tests/test_single_keystrokes.c
+)
+
+target_link_libraries(test_single_keystrokes vt_interact vt_process vt_socket unity)
+
+# Test executable for simple keystrokes (no Unity framework)
+add_executable(test_simple_keystrokes
+    Tests/test_simple_keystrokes.c
+)
+
+target_link_libraries(test_simple_keystrokes vt_interact vt_process vt_socket unity)
+
+# Include paths for thought_integration_tests
+target_include_directories(thought_integration_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/Tests
+    ${CMAKE_SOURCE_DIR}/Common
+    ${CMAKE_SOURCE_DIR}/Library/vt_interact
+    ${CMAKE_SOURCE_DIR}/Library/vt_process
+    ${CMAKE_SOURCE_DIR}/Library/vt_socket
+    ${CMAKE_SOURCE_DIR}/Tools/unity/src
+)
+
+target_link_libraries(thought_integration_tests vt_interact vt_process vt_socket unity)
 
 # Simple process launch test executable
 add_executable(test_process_launch

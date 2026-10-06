@@ -5,8 +5,16 @@
 #include <string.h>
 #include <stdio.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <jobapi.h>  /* For job objects */
+#endif
+
 /* Error message storage - must be defined before functions that use it */
 static char last_error[256] = "";
+
+/* Job handle for terminating child processes when parent exits */
+static HANDLE job_handle = NULL;
 
 typedef struct vt_process_t {
     VT_PROCESS_PID process_handle;
@@ -22,6 +30,7 @@ typedef struct vt_process_t {
 static uint16_t vt_process_find_port(vt_process_handle_t handle);
 static bool vt_process_create_process(const vt_process_config_t* config, VT_PROCESS_PID* process_handle, uint16_t port);
 static bool vt_process_destroy_process(VT_PROCESS_PID process_handle);
+static void vt_process_init_job_object(void);
 
 #ifdef _WIN32
 
@@ -31,9 +40,9 @@ static bool vt_process_create_process(const vt_process_config_t* config, VT_PROC
     char working_dir[512];
     STARTUPINFOA startup_info;
     PROCESS_INFORMATION process_info;
-    
+
     if (!config || !process_handle) return false;
-    
+
     if (config->virtualt_path) {
         strncpy_s(virtualt_path, sizeof(virtualt_path), config->virtualt_path, sizeof(virtualt_path) - 1);
     } else {
@@ -44,7 +53,7 @@ static bool vt_process_create_process(const vt_process_config_t* config, VT_PROC
             strncpy_s(virtualt_path, sizeof(virtualt_path), "virtualt", sizeof(virtualt_path) - 1);
         }
     }
-    
+
     /* Handle both forward and backward slashes for path separators */
     size_t path_len = strlen(virtualt_path);
     char last_char = (path_len > 0) ? virtualt_path[path_len - 1] : '\0';
@@ -65,9 +74,18 @@ static bool vt_process_create_process(const vt_process_config_t* config, VT_PROC
         /* Path does not end with slash - check if it already has executable extension */
         #ifdef _WIN32
         if (path_len < 4 || _stricmp(virtualt_path + path_len - 4, ".exe") != 0) {
-            /* No .exe extension - append it */
-            if (path_len + 4 < sizeof(virtualt_path)) {
-                strncat_s(virtualt_path, sizeof(virtualt_path), ".exe", 4);
+            /* No .exe extension - check if there's a dot anywhere (indicating a file with extension) */
+            char* last_dot = strrchr(virtualt_path, '.');
+            if (last_dot == NULL || (last_dot && last_char == '.')) {
+                /* No dot or dot is at the end - treat as directory, append /virtualt.exe */
+                if (path_len + 12 < sizeof(virtualt_path)) {
+                    strncat_s(virtualt_path, sizeof(virtualt_path), "/virtualt.exe", 13);
+                }
+            } else {
+                /* Has a dot but not .exe - might be another extension, append .exe anyway */
+                if (path_len + 4 < sizeof(virtualt_path)) {
+                    strncat_s(virtualt_path, sizeof(virtualt_path), ".exe", 4);
+                }
             }
         }
         #else
@@ -77,7 +95,7 @@ static bool vt_process_create_process(const vt_process_config_t* config, VT_PROC
         }
         #endif
     }
-    
+
     snprintf(command_line, sizeof(command_line), "\"%s\" -p %d%s", virtualt_path, port, config->headless ? " -n" : "");
 
     /* Handle both forward and backward slashes when extracting directory */
@@ -100,28 +118,32 @@ static bool vt_process_create_process(const vt_process_config_t* config, VT_PROC
         /* No slash found, use current directory */
         GetCurrentDirectoryA(sizeof(working_dir), working_dir);
     }
-    
-    /* Debug logging */
-    /* printf("DEBUG: virtualt_path = '%s'\n", virtualt_path); */
-    /* printf("DEBUG: command_line = '%s'\n", command_line); */
-    /* printf("DEBUG: working_dir = '%s'\n", working_dir); */
-    
+
+    /* Initialize job object if not already done (for child process cleanup) */
+    vt_process_init_job_object();
+
     memset(&startup_info, 0, sizeof(startup_info));
     startup_info.cb = sizeof(startup_info);
-    
+
     /* Try with command_line as lpApplicationName to avoid path resolution issues */
     /* CreateProcessA first param is lpApplicationName, second is lpCommandLine */
     /* We need to pass the full command line (with -p port) as the second parameter */
     if (CreateProcessA(NULL, command_line, NULL, NULL, FALSE, 0, NULL, working_dir, &startup_info, &process_info)) {
         *process_handle = process_info.hProcess;
+        /* Assign process to job object so it will be terminated when parent exits */
+        if (job_handle) {
+            AssignProcessToJobObject(job_handle, process_info.hProcess);
+        }
         CloseHandle(process_info.hThread);
         return true;
     }
-    
+
     /* Debug: Log error information when CreateProcess fails */
     DWORD error = GetLastError();
-    snprintf(last_error, sizeof(last_error), "CreateProcess failed with error %lu for path: %s", error, virtualt_path);
-    
+    char error_buf[256];
+    snprintf(error_buf, sizeof(error_buf), "CreateProcess failed with error %lu for path: %s, command: %s", error, virtualt_path, command_line);
+    vt_process_set_error(error_buf);
+
     return false;
 }
 
@@ -134,6 +156,15 @@ static bool vt_process_destroy_process(VT_PROCESS_PID process_handle) {
     /* Wait a moment for cleanup */
     Sleep(200);
 
+    /* Wait for process to fully terminate */
+    DWORD result = WaitForSingleObject(process_handle, 1000);
+    if (result == WAIT_TIMEOUT) {
+        /* Process didn't terminate in time, force close */
+        CloseHandle(process_handle);
+        return false;
+    }
+
+    CloseHandle(process_handle);
     return terminated;
 }
 
@@ -156,6 +187,20 @@ static bool vt_process_destroy_process(VT_PROCESS_PID process_handle) {
 
 #endif
 
+/* Initialize job object for child process cleanup */
+static void vt_process_init_job_object(void) {
+    if (job_handle == NULL) {
+        /* Create a job object that kills processes when closed */
+        job_handle = CreateJobObject(NULL, NULL);
+        if (job_handle) {
+            /* Configure job to kill processes when job handle is closed */
+            JOBOBJECT_EXTENDED_LIMIT_INFORMATION info = {0};
+            info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+            SetInformationJobObject(job_handle, JobObjectExtendedLimitInformation, &info, sizeof(info));
+        }
+    }
+}
+
 vt_process_handle_t vt_process_create(void) {
     vt_process_internal_t* handle = malloc(sizeof(vt_process_internal_t));
     if (!handle) return NULL;
@@ -173,6 +218,11 @@ void vt_process_destroy(vt_process_handle_t handle) {
     free(handle);
     /* Cleanup socket subsystem */
     vt_socket_cleanup();
+    /* Close job handle to kill any remaining child processes */
+    if (job_handle) {
+        CloseHandle(job_handle);
+        job_handle = NULL;
+    }
 }
 
 bool vt_process_launch(vt_process_handle_t handle, const vt_process_config_t* config) {
@@ -181,9 +231,9 @@ bool vt_process_launch(vt_process_handle_t handle, const vt_process_config_t* co
         vt_process_set_error("Invalid arguments to vt_process_launch");
         return false;
     }
-    
+
     if (internal->is_running) vt_process_terminate(handle);
-    
+
     /* Determine port before launching process */
     uint16_t launch_port;
     if (config->port == 0) {
@@ -195,11 +245,17 @@ bool vt_process_launch(vt_process_handle_t handle, const vt_process_config_t* co
     } else {
         launch_port = config->port;
     }
-    
-    if (!vt_process_create_process(config, &internal->process_handle, launch_port)) return false;
-    
+
+    if (!vt_process_create_process(config, &internal->process_handle, launch_port)) {
+        return false;  /* Error already set by vt_process_create_process */
+    }
+
     internal->port = launch_port;
     internal->is_running = true;
+
+    /* Give VirtualT a moment to start before waiting for ready */
+    Sleep(500);
+
     return true;
 }
 
@@ -207,9 +263,11 @@ bool vt_process_wait_for_ready(vt_process_handle_t handle, uint32_t timeout_ms) 
     vt_process_internal_t* internal = (vt_process_internal_t*)handle;
     uint32_t timeout = timeout_ms > 0 ? timeout_ms : 10000;
     uint32_t elapsed = 0, step = 500;
-    
-    if (!internal || !internal->is_running) return false;
-    
+
+    if (!internal || !internal->is_running) {
+        return false;
+    }
+
     uint16_t port = internal->port;
     if (port == 0) {
         /* No port specified, try to find one */
@@ -223,7 +281,7 @@ bool vt_process_wait_for_ready(vt_process_handle_t handle, uint32_t timeout_ms) 
         vt_process_set_error("Failed to find available port for VirtualT socket");
         return false;
     }
-    
+
     /* Try to connect to the configured port to verify VirtualT is ready */
     while (elapsed < timeout) {
         vt_socket_handle_t sock = vt_socket_create("127.0.0.1", port);
@@ -236,10 +294,7 @@ bool vt_process_wait_for_ready(vt_process_handle_t handle, uint32_t timeout_ms) 
             }
             vt_socket_destroy(sock);
         }
-        
-        /* Debug output */
-        printf("[DEBUG] Wait for ready: elapsed=%u, trying again...\n", elapsed);
-        
+
         Sleep(step);
         elapsed += step;
     }
@@ -321,7 +376,7 @@ bool vt_process_is_connected(vt_process_handle_t handle) {
 vt_socket_handle_t vt_process_create_socket(vt_process_handle_t handle, const char* host) {
     vt_process_internal_t* internal = (vt_process_internal_t*)handle;
     if (!internal) return NULL;
-    
+
     const char* host_to_use = host ? host : "127.0.0.1";
     vt_socket_handle_t sock = vt_socket_create(host_to_use, internal->port);
     return sock;

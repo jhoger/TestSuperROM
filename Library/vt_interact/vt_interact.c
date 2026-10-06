@@ -82,7 +82,10 @@ void vt_interact_destroy(vt_interact_handle_t handle) {
 /* Process Management Functions */
 bool vt_interact_launch(vt_interact_handle_t handle, const vt_interact_config_t* config) {
     vt_interact_internal_t* internal = (vt_interact_internal_t*)handle;
-    if (!internal || !config) return false;
+    if (!internal || !config) {
+        vt_interact_set_error("Invalid handle or config in vt_interact_launch");
+        return false;
+    }
 
     vt_process_config_t proc_config = {
         .virtualt_path = config->virtualt_path,
@@ -92,7 +95,8 @@ bool vt_interact_launch(vt_interact_handle_t handle, const vt_interact_config_t*
     };
 
     if (!vt_process_launch(internal->process, &proc_config)) {
-        vt_interact_set_error(vt_process_get_error());
+        const char* proc_err = vt_process_get_error();
+        vt_interact_set_error(proc_err ? proc_err : "Unknown error in vt_process_launch");
         return false;
     }
 
@@ -990,5 +994,112 @@ bool vt_interact_send_keystrokes(vt_interact_handle_t handle,
     }
 
     vt_interact_log("DEBUG: Test passed!");
+    return true;
+}
+
+/* ============================================================================
+ * Screen Memory Functions
+ * ========================================================================= */
+
+/**
+ * Get the full screen dump as a string
+ * Uses the VirtualT 'sd' command to dump the entire screen
+ */
+bool vt_interact_get_screen_dump(vt_interact_handle_t handle, char* screen, size_t screen_size) {
+    vt_interact_internal_t* internal = (vt_interact_internal_t*)handle;
+    if (!internal || !internal->socket || !screen || screen_size == 0) {
+        vt_interact_set_error("Invalid arguments to vt_interact_get_screen_dump");
+        return false;
+    }
+
+    char response[1024];
+
+    /* Use VirtualT's screen dump command */
+    if (!vt_socket_send_command(internal->socket, "sd", response, sizeof(response))) {
+        vt_interact_set_error("Failed to get screen dump");
+        return false;
+    }
+
+    /* Copy the response to the output buffer */
+    strncpy_s(screen, screen_size, response, screen_size - 1);
+    screen[screen_size - 1] = '\0';
+
+    return true;
+}
+
+/**
+ * Read a string from memory at a specific address
+ * Uses the 'string' command which reads until null terminator
+ */
+bool vt_interact_read_string(vt_interact_handle_t handle, uint16_t address, char* buffer, size_t buffer_size) {
+    vt_interact_internal_t* internal = (vt_interact_internal_t*)handle;
+    if (!internal || !internal->socket || !buffer || buffer_size == 0) {
+        vt_interact_set_error("Invalid arguments to vt_interact_read_string");
+        return false;
+    }
+
+    char command[64];
+    snprintf(command, sizeof(command), "string %d", address);
+
+    char response[1024];
+    if (!vt_socket_send_command(internal->socket, command, response, sizeof(response))) {
+        vt_interact_set_error("Failed to read string from memory");
+        return false;
+    }
+
+    /* The response should be the string itself */
+    strncpy_s(buffer, buffer_size, response, buffer_size - 1);
+    buffer[buffer_size - 1] = '\0';
+
+    return true;
+}
+
+/**
+ * Read LCD memory and return it as a string
+ * Reads raw bytes from LCD VRAM and converts to printable string
+ */
+bool vt_interact_read_lcd_memory(vt_interact_handle_t handle, uint16_t address, size_t length, char* output, size_t output_size) {
+    vt_interact_internal_t* internal = (vt_interact_internal_t*)handle;
+    if (!internal || !internal->socket || !output || output_size == 0) {
+        vt_interact_set_error("Invalid arguments to vt_interact_read_lcd_memory");
+        return false;
+    }
+
+    char response[4096];
+    char command[64];
+
+    /* Set radix to 10 (decimal) */
+    vt_socket_send_command(internal->socket, "radix 10", response, sizeof(response));
+
+    /* Read memory using rm command */
+    snprintf(command, sizeof(command), "rm %u %zu", address, length);
+
+    if (!vt_socket_send_command(internal->socket, command, response, sizeof(response))) {
+        vt_interact_set_error("Failed to read LCD memory");
+        return false;
+    }
+
+    /* Parse the response: "byte1 byte2 byte3 ..." -> string */
+    size_t pos = 0;
+    char* saveptr = NULL;
+    char* temp = _strdup(response);
+    if (temp) {
+        char* token = strtok_s(temp, " \n\r\t", &saveptr);
+        int token_count = 0;
+        while (token != NULL && pos < output_size - 1) {
+            token_count++;
+            int byte_val = atoi(token);
+            if (byte_val >= 32 && byte_val <= 126) {  /* Printable ASCII */
+                output[pos++] = (char)byte_val;
+            } else if (byte_val == 0) {
+                /* Null terminator - stop here */
+                break;
+            }
+            token = strtok_s(NULL, " \n\r\t", &saveptr);
+        }
+        free(temp);
+    }
+    output[pos] = '\0';
+
     return true;
 }

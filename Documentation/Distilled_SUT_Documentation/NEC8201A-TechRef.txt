@@ -591,62 +591,48 @@
                 See next figure about the Port address and bit assignment of
                 the data.
 
-                          PORT_ADDRESS ~XA0H CIN>
+                          PORT ADDRESS ^XA0H (IN)
                                     Bank status
 
-                     MSB ----7------6------5-~---4------3------2-------1------0---
+                        -------------------------------------------------
+                    MSB |  7  |  6  |  5  |  4  |  3  |  2  |  1  |  0  |
+                        -------------------------------------------------
 
-                          Bit 7                Serial interface status #2
-                          Bit 6
-                          Bit 5                Serial interface status +n
+                        Bit 7   ---     Serial interface status #2
+                        Bit 6   ---     Serial interface status #1
+                        Bit 5   ---     Not used
+			Bit 4   ---     Not used
+                        Bit 3   ---     High address (^X8000 - ^XFFFF) status
+                #2       
+                        Bit 2           High address (^X8000 - ^XFFFF) status
 
-                                               Not used
+                #1                            
+                        Bit 1   ---     Low address  (^X0000 - ^X7FFF) status
+                #2
+                        Bit 0   ---     Low address  (^X0000 - ^X7FFF) status
+                #1
 
-                          Bit 3 Bit 4 ---      Not used
-                                               High address C...X8000 - ""XFFFF> status
+                        Serial I/F #2         Serial   I/F #1
+                                0                       0         Not used
+                                0                       1         SIO port
+                                1                       0         Floppy
+                                                                      disk port
+                                1                       1         RS-232C port
 
-                *2        Bit 2                High address C...X8000 - ...XFFFF> status
+                        High address #2  High address #1    
+                                0               0       Bank #0 (RAM #1)
+                                0               1       Not used
+                                1               0       Bank #2 (RAM #2)
+                                1               1       Bank #3 (RAM #3)
 
-                ft1                            Low address C...X0000 ...X7FFF> status
+                        Low address #2   Low address #1   
+                                   0            0       Bank #0 (ROM #0) 
+                                   0            1       Bank #1 (ROM #1) 
+                                   1            0       Bank #2 (RAM #2)
+                                   1            1       Bank #3 (RAM #3)
+                                                         
 
-                          Bit 1
-
-                tt2
-
-                          Bit 0                Low address C... X0000 - "'X7FFF> status
-
-                *1
-
-                          Serial   I/F #2                Serial   I/F #1
-
-                                    0                              0         Not used
-                                    0                              1         SIO port
-                                                                   0         Floppy
-                                    1
-                                                                               disk port
-                                    1                              1         RS-232C port
-
-                          High address #2       High address #1    Bank #0 CRAM #1)
-
-                                    0                    0
-
-                                    0                    1         Not used
-                                                                   Bank #2 CRAM #2)
-                                    1                    0
-                                    1
-                                                         1         Bank #3 CRAM #3)
-
-                           Low a·ddress #2      Low address #1     Bank #0 CROM #0)
-
-                                   0                     0         Bank #1 CROM #1)
-
-                                   0                     1         Bank #2 CRAM #2)
-
-                                   1                     0
-                                   1
-                                                         1         Bank #3 CRAM #3)
-
-                                    Refer to Chapter 12 about Serial Interface.
+                                   Refer to Chapter 12 about Serial Interface.
 
                                               - 19 -
       MEMORY MAP
@@ -654,27 +640,23 @@
                 2.2.2 Bank Switching Software
 
                           The bank-switching capability is used in Menu mode.
-
-                The ·BANK· command, arranged in Function key 10 (Shift+ F.S)
-
+                The "BANK" command, arranged in Function key 10 (Shift+ F5)
                 uses this function. This function falls into the Bank handler
                 routine, CHGBNK, ^X7EAB. The CHGBNK checks the current bank
                 status, tests whether the bank really exists, save the new
-                bank # in BANK (^XF308), changes the bank status and jumps to
-
-                the address 0. Jumping to address 0 causes ·coLO START· if
-
-                the bank has not ever used or the flag named FSIOSV has a
+                bank # in BANK (^XF3DB), changes the bank status and jumps to
+                the address 0. Jumping to address 0 causes "COLD START" if
+                the bank has not ever used or the flag named FSIDSV has a
                 wrong value. (Refer to the section 3.2 Bookkeeping area.)
-               Otherwise, Jumping 0 does ·wARM START·.
+                Otherwise, Jumping 0 does "WARM START".
 
-                          In or.der to test the existence of the another bank,
+                          In order to test the existence of the another bank,
                CHGBNK reads the contents of the address, ^XE000, in that
                destination bank, modifies that value, restores it, and
                re-reads it. If that bank were really in exist, the value
                read first and the value re-read last are not identical.
 
-                          The reason why CHGBNK jumps·into the address 0 is, you
+                          The reason why CHGBNK jumps into the address 0 is, you
                might already notice, to set up the bookkeeping area. As
                described in Chapter 7, all standard programs and operating
                system uses this area every time to keep the current status.
@@ -682,11 +664,11 @@
                interrupt routines. So without setting up this area, that
                bank cannot be handled with ROM #0 correctly.
 
-                          If you use a bank only with your - special application
+                          If you use a bank only with your special application
                program, which does not use the pointers on interrupt routines
                in the bookkeeping area, you might think that you need not
                care about the bookkeeping area. But please do not forget
-               that "sHIFT+F.s" in menu level can change the bank any time.
+               that "SHIFT+F5" in menu level can change the bank any time.
                I recommend that you will keep the current rules about
                Bank-switching in ROM #0, and set up the bookkeeping area.
 
@@ -695,18 +677,19 @@
 
                                               - 20 -
       MEMORY MAP
-                2.3 GENERAL MEMORY MAPPING OF INTERNAL SOFTWARE USE
-                          You know that the ROM #0 addressed from 0 to ^X7FFF is
-                used for standard programs and operating systems. (Sometimes,
-                "standard programs" represents BASIC, TEXT and TELCOM
-                especially. "operating system" also represents "Menu". But
-                there is no explicit border line between the "standard
-                programs" and "operating system". But I do sometimes use
-                these words to explain the concept of the PC-8201A's built-in
+               2.3 GENERAL MEMORY MAPPING OF INTERNAL SOFTWARE USE
+
+                         You know that the ROM #0 addressed from 0 to ^X7FFF is
+               used for standard programs and operating systems. (Sometimes,
+               "standard programs" represents BASIC, TEXT and TELCOM
+               especially. "Operating system" also represents "Menu". But
+               there is no explicit border line between the "standard
+               programs" and "operating system". But I do sometimes use
+               these words to explain the concept of the PC-8201A's built-in
                software.) Also, Some parts of the RAM memory area are
-                reserved and used by that standard programs and operating
+               reserved and used by that standard programs and operating
                system. The memory map about the RAM area is figured at next
-                page. The each part of the - reserved area is pointed by
+               page. The each part of the reserved area is pointed by
                pointers in the "book-keeping area", located at the highest
                part of the RAM memory, from ^XF380 to ^XFFFF. And the
                following 2 items are included in the book-keeping area, too.
@@ -717,110 +700,95 @@
                                               - 21 -
       MEMORY MAP
 
-                          Fig 2.2 PC - 8201A RAM AREA MEMORY MAP
+                       Fig 2.2 PC - 8201A RAM AREA MEMORY MAP
 
-                ^XFFFF -----------------I
-                          : Bookkeeping I
-
-                              ar-ea            ·I
-                                               I
-
-                ^XF3s0· -------------~---I          CHIMEMJ        "'XF384
-                        · : User- machine I
-
-                              stored ar-ea :<-
-
-                          : File control       I
-                                               I
-                          : block ar-ea :<- CFILTABJ               "'XFB63
-
-                          : 2 Bytes space:
-
-                          : String ar-ea       :<- CMEMSIZJ        "'XFA9A
-
-                             (used)
-
-                          : String ar-ea       :<- CFRETOPJ        "'XFABF
-
-                             (fr-ee)
-
-                          : Staci< ar-ea       :<- CSTKTOPJ "'XF459
-                                               :<- Stack Pointer-
-
-                          I Fr-ee ar-ea        I
-                          I                    I
-
-                                               :<-  CSTRENDJ       "XFAE9
-                          -II --A-r--r--a-y--s-to-r-e-d----IICARYTABJ"'XFAE7
-                                               :<-  CVARTABJ       "XFAES
-                              ar-ea                 CBINTABJ       "'XFAE3
-                          --S--im--p-l-e---------II CEOTDIRJ+1     "F886+1
-                            variable ar-ea :<-
-
-                             .co files         I
-                                               I
-
-                              ar-ea            :<-
-                          -:--E-D-IT---ar---e-a------II
-                          : for- BASIC         :<-
-
-                          : Paste buffer-      I
-                                               I
-                                               :<- CSCRDIRJ+1 "XF87B
-                          : for- TEXT
-
-                          : .DO files          I                   "'XFAE1
-                             ar-ea             I
-
-                                               :<- ~ASCTABJ
-
-                          : non-registered:
-                          l BASIC file :<-CNULDIRJ+1 "'XF870+1
-
+                ^XFFFF -----------------
+                       | Bookkeeping   |
+                       |  area         |
+                ^XF380 -----------------
+                       | User machine  |
+                       |  stored area  |<- [HIMEM]     ^XF384
+                       -----------------
+                       | File control  |
+                       | block area    |<- [FILTAB]    ^XFB63
+                       -----------------
+                       | 2 Bytes space |
+                       -----------------
+                       | String area   |<- [MEMSIZ]    ^XFA9A
+                       |  (used)       |
+                       -----------------
+                       | String area   |<- [FRETOP]    ^XFABF
+                       |  (free)       |
+                       -----------------
+                       | Stack area    |<- [STKTOP]    ^XF459
+                       |               |<- Stack Pointer
+                       -----------------
+                       | Free area     |
+                       |               |<- [STREND]    ^XFAE9
+                       -----------------
+                       | Array stored  |
+                       |  area         |<- [ARYTAB]    ^XFAE7
+                       -----------------
+                       | Simple        |
+                       | variable area |<- [VARTAB]    ^XFAE5
+                       -----------------
+                       | .CO files     |
+                       | area          |<- [BINTAB]    ^XFAE3
+                       -----------------
+                       | EDIT area     |
+                       | for BASIC     |<- [EDTDIR]+1  ^XF886+1
+                       -----------------
+                       | Paste buffer  |
+                       | for TEXT      |<- [SRCDIR]+1  ^XF87B
+                       -----------------
+                       | .DO files     |
+                       |  area         |<- [ASCTAB]    ^XFAE1
+                       -----------------
+                       | non-registered|
+                       | BASIC file    |<- [NULDIR]+1  ^XFAE1
+                       -----------------
+                       | .BA files     |
+                       |  area         |<- [TXTEND]    ^XFA88
+                       -----------------
+                       | Current BA    |
+                       |  file         |<- [TXTTAB]    ^XFA5D
+                       -----------------
+                       | .BA files     |
+                       |  area         |<- [BOTTOM]+1  ^XF980+1
+                       -----------------
+                       |               |<- [BOTTOM]    ^XF980  
+                       -----------------
+ 
+              
                                               - 22 -
-      MEMORY MAP
-
-                           : .BA fi 1es        : <-CTXTENDJ        "XFA88
-                                                                   "XFASO
-                               ar-ea           l<-CTXTTABJ         "XF980+1
-                                                                   "XF980
-                           : Cur-r-ent BA      I
-                                               I
-                              file
-                                               l<-CBOTTOMJ+1
-                           : .BA fi 1es        I <-CBOTTOMJ
-
-                              ar-ea
-
                                               - 23 -
       MEMORY MAP
 
                           Brief explanation about pointers which appear at the
-
                 previous page.
 
-                          CBOTTOMJ    Bottom address of RAM
-                          CTXTTABJ    Beginning of the current BASIC program
-                          CTXTENOJ    End of the current BASIC program
-                          CNULOIRJ    Non-registered BASIC program
-                         · CASCTABJ   Lowest address of ASCII files
-                          CSCROIRJ    SCRAP file
-                          CBINTABJ    Lowest address of binary files
-                          CVARTABJ
-                          CARYTABJ    Simple variable space
-                          CSTRENOJ
-                          CSTKTOPJ    Start of array table
-                          CFRETOPJ    End of Array table
-                          CMEMSIZJ    Top of stack space
-                          CHIMEMJ     Top of string free space
-                                      Highest location in memory
-                                      Highest memory available to BASIC
-                                      (The same as CLEAR's 2nd parameter)
+                        [BOTTOM] Bottom address of RAM
+                        [TXTTAB] Beginning of the current BASIC program
+                        [TXTEND] End of the current BASIC program
+                        [NULDIR] Non-registered BASIC program
+                        [ASCTAB] Lowest address of ASCII files
+                        [SCRDIR] SCRAP file
+                        [BINTAB] Lowest address of binary files
+                        [VARTAB] Simple variable space
+                        [ARYTAB] Start of array table                                                   
+                        [STREND] End of Array table
+                        [STKTOP] Top of stack space
+                        [FRETOP] Top of string free space
+                        [MEMSIZ] Highest location in memory
+                        [HIMEM]  Highest memory available to BASIC
+                                 (The same as CLEAR's 2nd parameter)
+                                 
+                                 
 
-                          rf. Chapter ·5 "uNOERSTANOING THE RAM FILE CONCEPT",
-                          "otRECTORY STRUCTURE" and "RAM ORGANIZATION". In
-                          those chapters, the concept of the files and detail
-                          explanation about the pointers are described.
+                        rf. Chapter 5 "UNDERSTANDING THE RAM FILE CONCEPT",
+                        "DIRECTORY STRUCTURE" and "RAM ORGANIZATION". In
+                        those chapters, the concept of the files and detail
+                        explanation about the pointers are described.
 
                                               - 24 -
        MEMORY MAP

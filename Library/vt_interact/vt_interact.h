@@ -230,6 +230,40 @@ bool vt_interact_send_keystrokes(vt_interact_handle_t handle,
                                 int* error_code);
 
 /* ============================================================================
+ * Screen Memory Functions
+ * ========================================================================= */
+
+/**
+ * Get the full screen dump as a string
+ * @param handle - vt_interact handle
+ * @param screen - Output buffer for screen content (should be at least 321 bytes)
+ * @param screen_size - Size of output buffer
+ * @return true on success, false on failure
+ */
+bool vt_interact_get_screen_dump(vt_interact_handle_t handle, char* screen, size_t screen_size);
+
+/**
+ * Read a string from memory at a specific address
+ * @param handle - vt_interact handle
+ * @param address - Memory address to read from
+ * @param buffer - Output buffer for string
+ * @param buffer_size - Size of output buffer
+ * @return true on success, false on failure
+ */
+bool vt_interact_read_string(vt_interact_handle_t handle, uint16_t address, char* buffer, size_t buffer_size);
+
+/**
+ * Read LCD memory and return it as a string
+ * @param handle - vt_interact handle
+ * @param address - Start address of LCD VRAM
+ * @param length - Number of bytes to read
+ * @param output - Output buffer for string
+ * @param output_size - Size of output buffer
+ * @return true on success, false on failure
+ */
+bool vt_interact_read_lcd_memory(vt_interact_handle_t handle, uint16_t address, size_t length, char* output, size_t output_size);
+
+/* ============================================================================
  * Helper Functions
  * ========================================================================= */
 

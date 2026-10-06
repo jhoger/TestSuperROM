@@ -133,8 +133,10 @@ void test_interact_type_basic_program(void) {
     };
 
     for (int i = 0; i < 2; i++) {
-        TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, simple_program[i]), vt_interact_get_error());
-        TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
+        bool result = vt_interact_type_line(handle, simple_program[i]);
+        TEST_ASSERT_TRUE_MESSAGE(result, vt_interact_get_error());
+        result = vt_interact_press_key(handle, "enter");
+        TEST_ASSERT_TRUE_MESSAGE(result, vt_interact_get_error());
     }
 
     /* Exit back to menu */

@@ -344,7 +344,7 @@ static void escape_quotes(const char* src, char* dst, size_t dst_size) {
 
     while (src[src_idx] != '\0' && dst_idx + 2 < dst_size) {
         if (src[src_idx] == '"' || src[src_idx] == '\\') {
-            /* Escape quote and backslash with backslash */
+            /* Escape quote and backslash with backslash (per VirtualT doc) */
             dst[dst_idx++] = '\\';
         }
         dst[dst_idx++] = src[src_idx];
@@ -356,9 +356,14 @@ static void escape_quotes(const char* src, char* dst, size_t dst_size) {
 bool vt_interact_type_line(vt_interact_handle_t handle, const char* line) {
     /* Type a line of BASIC using the VirtualT 'key' command */
     vt_interact_internal_t* internal = (vt_interact_internal_t*)handle;
-    if (!internal || !internal->socket || !line) return false;
+    if (!internal || !internal->socket || !line) {
+        vt_interact_set_error("Invalid args in type_line");
+        return false;
+    }
 
-    /* Escape quotes in the line (double them for VirtualT) */
+    /* Escape quotes in the line per VirtualT documentation:
+     * " to \" and \ to \\
+     */
     char escaped_line[512];
     escape_quotes(line, escaped_line, sizeof(escaped_line));
 
@@ -376,6 +381,10 @@ bool vt_interact_type_line(vt_interact_handle_t handle, const char* line) {
 #else
         usleep(100000);
 #endif
+    }
+
+    if (!result) {
+        vt_interact_set_error("Failed to type line in vt_interact_type_line");
     }
 
     return result;

@@ -304,8 +304,8 @@ bool vt_socket_send_command(vt_socket_handle_t handle, const char* command, char
     if(s <= 0) return false;
 
     /* Receive response with timeout */
-    /* Use a moderate timeout (2 seconds) - shorter for quick commands */
-    DWORD timeout = 2000;  /* 2 second timeout */
+    /* Use a moderate timeout (5 seconds) for commands that may take longer */
+    DWORD timeout = 5000;  /* 5 second timeout */
     setsockopt(i->socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
 
     /* Read all available data (may contain events + Ok) */

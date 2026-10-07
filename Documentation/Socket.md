@@ -137,7 +137,7 @@ The async events reported by VirtualT 1.0 are:
 #### `radix`
 - **Parameters:** "10", "16"
 - **Returns:** Parameter error, Ok
-- Specifies the radix that should be used when reporting addresses and data to the socket interface. The radix parameter does not affect input data. Input data will be parsed using standard C regardless of the radix setting. The default radix is 10 (decimal).
+- Specifies the radix that should be used when reporting addresses and data to the socket interface. The radix parameter does not affect input data. Input data will be parsed using standard C regardless of the radix setting. The standard for this project is radix 16 (hex).
 
 #### `load`
 - **Parameters:** filename
@@ -321,7 +321,7 @@ No provisions are made by this command to halt the CPU while writing multiple me
 - **Parameters:** "10", "16"
 - **Returns:** Parameter error, Ok
 - Specifies the radix that should be used when reporting addresses and data to the
-  socket interface. The default radix is 10 (decimal).
+  socket interface. The standard for this project is radix 16 (hex).
 
 #### `reset`
 - **Parameters:** none

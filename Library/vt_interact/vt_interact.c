@@ -193,14 +193,14 @@ bool vt_interact_get_status(vt_interact_handle_t handle, vt_interact_status_t* s
     status->pc = 0;
     status->sp = 0;
     
-    /* Get current PC if connected */
+    /* Get current PC if connected (values returned in hex radix) */
     if (internal->socket) {
         char response[256];
         if (vt_socket_send_command(internal->socket, "pc", response, sizeof(response))) {
-            status->pc = (uint16_t)atoi(response);
+            status->pc = (uint16_t)strtol(response, NULL, 16);
         }
         if (vt_socket_send_command(internal->socket, "sp", response, sizeof(response))) {
-            status->sp = (uint16_t)atoi(response);
+            status->sp = (uint16_t)strtol(response, NULL, 16);
         }
     }
     
@@ -255,12 +255,12 @@ bool vt_interact_get_lcd_event(vt_interact_handle_t handle, uint8_t* row, uint8_
                         if (comma_in_parens) {
                             char* paren_close = strchr(comma_in_parens, ')');
                             if (paren_close) {
-                                /* Extract row */
+                                /* Extract row and col (values in hex radix) */
                                 *paren_open = '\0';
                                 *paren_close = '\0';
                                 *comma_in_parens = '\0';
-                                *row = (uint8_t)atoi(paren_open + 1);
-                                *col = (uint8_t)atoi(comma_in_parens + 1);
+                                *row = (uint8_t)strtol(paren_open + 1, NULL, 16);
+                                *col = (uint8_t)strtol(comma_in_parens + 1, NULL, 16);
 
                                 /* Copy character data after ) */
                                 strncpy_s(data, data_size, paren_close + 1, data_size - 1);
@@ -477,7 +477,7 @@ static bool get_cursor_position(vt_interact_handle_t handle, uint8_t* x, uint8_t
     char response[256];
 
     /* Read X cursor position (0xF3E6) */
-    if (!vt_socket_send_command(internal->socket, "radix 10", response, sizeof(response))) {
+    if (!vt_socket_send_command(internal->socket, "radix 16", response, sizeof(response))) {
         vt_interact_set_error("Failed to set radix");
         return false;
     }
@@ -490,9 +490,9 @@ static bool get_cursor_position(vt_interact_handle_t handle, uint8_t* x, uint8_t
         return false;
     }
 
-    /* Parse the response - should be a single decimal number */
-    int x_val = atoi(response);
-    vt_interact_log("DEBUG: Cursor X value: %d", x_val);
+    /* Parse the response - with radix 16, values are hex */
+    int x_val = (int)strtol(response, NULL, 16);
+    vt_interact_log("DEBUG: Cursor X value (hex parsed): %d", x_val);
     /* PC-8201A cursor X is 1-40 (1-based), convert to 0-39 for internal use */
     if (x_val < 1 || x_val > 40) {
         vt_interact_set_error("Invalid cursor X position");
@@ -508,8 +508,8 @@ static bool get_cursor_position(vt_interact_handle_t handle, uint8_t* x, uint8_t
         return false;
     }
 
-    int y_val = atoi(response);
-    vt_interact_log("DEBUG: Cursor Y value: %d", y_val);
+    int y_val = (int)strtol(response, NULL, 16);
+    vt_interact_log("DEBUG: Cursor Y value (hex parsed): %d", y_val);
     /* PC-8201A cursor Y is 1-8 (1-based), convert to 0-7 for internal use */
     if (y_val < 1 || y_val > 8) {
         vt_interact_set_error("Invalid cursor Y position");
@@ -520,8 +520,8 @@ static bool get_cursor_position(vt_interact_handle_t handle, uint8_t* x, uint8_t
     return true;
 }
 
-/* Parse decimal byte values from rm command response */
-/* Response format: "byte1 byte2 byte3 ... byteN" */
+/* Parse hex byte values from rm command response (radix 16) */
+/* Response format: "byte1 byte2 byte3 ... byteN" where each byte is hex */
 static int parse_rm_response(const char* response, uint8_t* buffer, size_t buffer_size) {
     vt_interact_log("DEBUG: parse_rm_response, response length=%zu", strlen(response));
     size_t pos = 0;
@@ -532,8 +532,10 @@ static int parse_rm_response(const char* response, uint8_t* buffer, size_t buffe
     char* token = strtok_s(temp, " \n\r\t", &saveptr);
     vt_interact_log("DEBUG: Starting to parse tokens");
     while (token != NULL && pos < buffer_size) {
-        int byte_val = atoi(token);
-        if (byte_val >= 0 && byte_val <= 255) {
+        /* Parse hex value using strtol */
+        char* endptr;
+        long byte_val = strtol(token, &endptr, 16);
+        if (endptr != token && byte_val >= 0 && byte_val <= 255) {
             buffer[pos++] = (uint8_t)byte_val;
         }
         token = strtok_s(saveptr, " \n\r\t", &saveptr);
@@ -555,9 +557,9 @@ static bool read_memory(vt_interact_handle_t handle, uint16_t address, uint8_t* 
 
     char response[4096];
 
-    /* Set radix to 10 (decimal) */
-    vt_interact_log("DEBUG: Setting radix to 10");
-    if (!vt_socket_send_command(internal->socket, "radix 10", response, sizeof(response))) {
+    /* Set radix to 16 (hex) */
+    vt_interact_log("DEBUG: Setting radix to 16");
+    if (!vt_socket_send_command(internal->socket, "radix 16", response, sizeof(response))) {
         vt_interact_set_error("Failed to set radix");
         return false;
     }
@@ -775,11 +777,11 @@ bool vt_interact_verify_mem_contains(vt_interact_handle_t handle, uint16_t addre
 
     char response[4096];
 
-    /* Set radix to 10 (decimal) - default and works consistently */
-    vt_socket_send_command(socket, "radix 10", response, sizeof(response));
+    /* Set radix to 16 (hex) - memory bytes returned as hex */
+    vt_socket_send_command(socket, "radix 16", response, sizeof(response));
 
     char command[256];
-    /* Read memory using the 'rm' command with decimal address */
+    /* Read memory using the 'rm' command */
     snprintf(command, sizeof(command), "rm %u %zu", address, length);
 
     if (!vt_socket_send_command(socket, command, response, sizeof(response))) {
@@ -791,23 +793,25 @@ bool vt_interact_verify_mem_contains(vt_interact_handle_t handle, uint16_t addre
 
     printf("Memory read from address %u (0x%04X) (length %zu):\n%s\n", address, address, length, response);
 
-    /* The rm command returns decimal byte values separated by spaces
+    /* The rm command returns hex byte values separated by spaces (radix 16)
      * We need to search for the expected content in ASCII form within the response
      * The memory we're reading is the PC-8201 LCD VRAM which contains ASCII characters
-     * Convert the decimal byte values to ASCII for searching */
+     * Convert the hex byte values to ASCII for searching */
 
-    /* Parse the response to extract ASCII characters from the decimal values */
+    /* Parse the response to extract ASCII characters from hex values */
     char ascii_buffer[4096];
     size_t ascii_pos = 0;
 
-    /* Parse decimal byte values and convert to ASCII */
-    /* The response format is: "byte1 byte2 byte3 ... byteN" */
+    /* Parse hex byte values and convert to ASCII */
+    /* The response format is: "byte1 byte2 byte3 ... byteN" where each byte is hex */
     char* temp = _strdup(response);
     if (temp) {
         char* token = strtok_s(temp, " \n", &temp);
         while (token != NULL) {
-            int byte_val = atoi(token);
-            if (byte_val >= 32 && byte_val <= 126) {  /* Printable ASCII */
+            /* Parse hex value */
+            char* endptr;
+            long byte_val = strtol(token, &endptr, 16);
+            if (endptr != token && byte_val >= 32 && byte_val <= 126) {  /* Printable ASCII */
                 if (ascii_pos < sizeof(ascii_buffer) - 1) {
                     ascii_buffer[ascii_pos++] = (char)byte_val;
                 }
@@ -828,8 +832,8 @@ bool vt_interact_verify_mem_contains(vt_interact_handle_t handle, uint16_t addre
         printf("Found expected content in memory at address %u: '%s'\n", address, expected_content);
     } else {
         printf("Expected content not found in parsed ASCII from memory at address %u: '%s'\n", address, expected_content);
-        /* Try searching in the raw response for a hint */
-        printf("Raw response contains 'My First Outline' check: %d\n", strstr(response, "77 121 32 70 105 114 115 116 32 79 117 116 108 105 110 101") != NULL);
+        /* Try searching in the raw response for a hint (hex values now) */
+        printf("Raw response contains 'My First Outline' check (hex): %d\n", strstr(response, "4D 79 20 46 69 72 73 74 20 4F 75 74 6C 69 6E 65") != NULL);
     }
 
     return found;
@@ -1077,8 +1081,8 @@ bool vt_interact_read_memory(vt_interact_handle_t handle, uint16_t address, size
     char response[4096];
     char command[64];
 
-    /* Set radix to 10 (decimal) */
-    vt_socket_send_command(internal->socket, "radix 10", response, sizeof(response));
+    /* Set radix to 16 (hex) */
+    vt_socket_send_command(internal->socket, "radix 16", response, sizeof(response));
 
     /* Read memory using rm command */
     snprintf(command, sizeof(command), "rm %u %zu", address, length);
@@ -1088,7 +1092,7 @@ bool vt_interact_read_memory(vt_interact_handle_t handle, uint16_t address, size
         return false;
     }
 
-    /* Parse the response: "byte1 byte2 byte3 ..." -> string */
+    /* Parse the response: "byte1 byte2 byte3 ..." -> string (hex radix) */
     size_t pos = 0;
     char* saveptr = NULL;
     char* temp = _strdup(response);
@@ -1097,8 +1101,10 @@ bool vt_interact_read_memory(vt_interact_handle_t handle, uint16_t address, size
         int token_count = 0;
         while (token != NULL && pos < output_size - 1) {
             token_count++;
-            int byte_val = atoi(token);
-            if (byte_val >= 32 && byte_val <= 126) {  /* Printable ASCII */
+            /* Parse hex value */
+            char* endptr;
+            long byte_val = strtol(token, &endptr, 16);
+            if (endptr != token && byte_val >= 32 && byte_val <= 126) {  /* Printable ASCII */
                 output[pos++] = (char)byte_val;
             } else if (byte_val == 0) {
                 /* Null terminator - stop here */

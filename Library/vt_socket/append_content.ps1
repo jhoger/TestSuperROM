@@ -229,45 +229,45 @@ bool vt_cpu_get_status(vt_socket_handle_t handle, vt_cpu_status_t* status) {
 
 bool vt_cpu_get_registers(vt_socket_handle_t handle, vt_registers_t* registers) {
     if (!handle || !registers) return false;
-    
+
     char response[VT_MAX_BUFFER_SIZE];
-    
+
     if (!vt_socket_send_command(handle, "a", response, sizeof(response))) return false;
-    registers->a = (uint8_t)atoi(response);
-    
+    registers->a = (uint8_t)strtol(response, NULL, 16);
+
     if (!vt_socket_send_command(handle, "b", response, sizeof(response))) return false;
-    registers->b = (uint8_t)atoi(response);
-    
+    registers->b = (uint8_t)strtol(response, NULL, 16);
+
     if (!vt_socket_send_command(handle, "c", response, sizeof(response))) return false;
-    registers->c = (uint8_t)atoi(response);
-    
+    registers->c = (uint8_t)strtol(response, NULL, 16);
+
     if (!vt_socket_send_command(handle, "d", response, sizeof(response))) return false;
-    registers->d = (uint8_t)atoi(response);
-    
+    registers->d = (uint8_t)strtol(response, NULL, 16);
+
     if (!vt_socket_send_command(handle, "e", response, sizeof(response))) return false;
-    registers->e = (uint8_t)atoi(response);
-    
+    registers->e = (uint8_t)strtol(response, NULL, 16);
+
     if (!vt_socket_send_command(handle, "h", response, sizeof(response))) return false;
-    registers->h = (uint8_t)atoi(response);
-    
+    registers->h = (uint8_t)strtol(response, NULL, 16);
+
     if (!vt_socket_send_command(handle, "l", response, sizeof(response))) return false;
-    registers->l = (uint8_t)atoi(response);
-    
+    registers->l = (uint8_t)strtol(response, NULL, 16);
+
     if (!vt_socket_send_command(handle, "bc", response, sizeof(response))) return false;
-    registers->bc = (uint16_t)atoi(response);
-    
+    registers->bc = (uint16_t)strtol(response, NULL, 16);
+
     if (!vt_socket_send_command(handle, "de", response, sizeof(response))) return false;
-    registers->de = (uint16_t)atoi(response);
-    
+    registers->de = (uint16_t)strtol(response, NULL, 16);
+
     if (!vt_socket_send_command(handle, "hl", response, sizeof(response))) return false;
-    registers->hl = (uint16_t)atoi(response);
-    
+    registers->hl = (uint16_t)strtol(response, NULL, 16);
+
     if (!vt_socket_send_command(handle, "sp", response, sizeof(response))) return false;
-    registers->sp = (uint16_t)atoi(response);
-    
+    registers->sp = (uint16_t)strtol(response, NULL, 16);
+
     if (!vt_socket_send_command(handle, "pc", response, sizeof(response))) return false;
-    registers->pc = (uint16_t)atoi(response);
-    
+    registers->pc = (uint16_t)strtol(response, NULL, 16);
+
     return true;
 }
 

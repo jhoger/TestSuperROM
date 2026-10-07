@@ -56,6 +56,23 @@ static void check_error(const char* msg) {
     }
 }
 
+/* Helper to print directory area contents */
+static void print_directory(const char* dir_buffer, int size) {
+    printf("Directory bytes:\n");
+    for (int i = 0; i < size; i++) {
+        if (dir_buffer[i] == 0xFF) {
+            printf("[%02X:EOF] ", (unsigned char)dir_buffer[i]);
+        } else if (dir_buffer[i] >= 32 && dir_buffer[i] < 128) {
+            printf("[%02X:%c] ", (unsigned char)dir_buffer[i], dir_buffer[i]);
+        } else {
+            printf("[%02X] ", (unsigned char)dir_buffer[i]);
+        }
+        if ((i + 1) % 11 == 0) printf("\n");
+    }
+    printf("\n");
+    fflush(stdout);
+}
+
 /* Helper to read memory and verify it contains expected content */
 /* This is a wrapper that uses vt_interact_verify_mem_contains internally */
 
@@ -123,6 +140,64 @@ void test_thought_complete_workflow(void) {
 
     /* Step 2: Set model to PC-8201 */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_set_model(handle, "pc8201"), vt_interact_get_error());
+
+    /* Clean up any existing TEST file from prior test runs */
+    /* The VirtualT emulator remembers its file system state between invocations */
+    printf("Cleaning up any existing TEST file...\n");
+    fflush(stdout);
+
+    /* Read directory to show current state */
+    char dir_buffer[100];
+    bool dir_read = vt_interact_read_memory(handle, 0xF84F, 88, dir_buffer, sizeof(dir_buffer));
+    if (dir_read) {
+        print_directory(dir_buffer, 88);
+    }
+
+    /* Use BASIC KILL command to delete the file if it exists */
+    /* THOUGHT files may be stored as "TEST" or "TEST.CT" */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_launch_basic_from_menu(handle), vt_interact_get_error());
+    vt_interact_type_line(handle, "KILL \"TEST\"");
+    vt_interact_press_key(handle, "enter");
+#ifdef _WIN32
+    Sleep(200);
+#else
+    usleep(200000);
+#endif
+    vt_interact_type_line(handle, "KILL \"TEST.CT\"");
+    vt_interact_press_key(handle, "enter");
+#ifdef _WIN32
+    Sleep(200);
+#else
+    usleep(200000);
+#endif
+    /* Exit BASIC back to main menu */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_exit_to_menu(handle), vt_interact_get_error());
+#ifdef _WIN32
+    Sleep(300);
+#else
+    usleep(300000);
+#endif
+
+    /* Verify TEST file is not present in directory */
+    printf("Verifying cleanup...\n");
+    fflush(stdout);
+    dir_read = vt_interact_read_memory(handle, 0xF84F, 88, dir_buffer, sizeof(dir_buffer));
+    if (dir_read) {
+        print_directory(dir_buffer, 88);
+        /* Verify no TEST file is present */
+        bool test_found = false;
+        for (int i = 0; i < 88 - 4; i++) {
+            if (dir_buffer[i] == 'T' && dir_buffer[i+1] == 'E' &&
+                dir_buffer[i+2] == 'S' && dir_buffer[i+3] == 'T') {
+                test_found = true;
+                break;
+            }
+        }
+        TEST_ASSERT_TRUE_MESSAGE(!test_found, "TEST file still present in directory after cleanup");
+    }
+
+    printf("Cleanup complete, proceeding with test...\n");
+    fflush(stdout);
 
     /* Step 3: Load the SUPNEC.bin SuperROM option ROM */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_load_rom(handle), vt_interact_get_error());
@@ -308,7 +383,7 @@ void test_thought_complete_workflow(void) {
     fflush(stdout);
 
     char screen_buffer[320];
-    bool success = vt_interact_read_lcd_memory(handle, 0xFD00, 320, screen_buffer, sizeof(screen_buffer));
+    bool success = vt_interact_read_memory(handle, 0xFD00, 320, screen_buffer, sizeof(screen_buffer));
 
     /* The outline should contain the heading we created */
     TEST_ASSERT_TRUE_MESSAGE(success, "Failed to read screen memory");

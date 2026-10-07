@@ -235,6 +235,7 @@ bool vt_interact_send_keystrokes(vt_interact_handle_t handle,
 
 /**
  * Get the full screen dump as a string
+ * Uses VirtualT's 'sd' command to dump the LCD VRAM at 0xFD00
  * @param handle - vt_interact handle
  * @param screen - Output buffer for screen content (should be at least 321 bytes)
  * @param screen_size - Size of output buffer
@@ -243,7 +244,8 @@ bool vt_interact_send_keystrokes(vt_interact_handle_t handle,
 bool vt_interact_get_screen_dump(vt_interact_handle_t handle, char* screen, size_t screen_size);
 
 /**
- * Read a string from memory at a specific address
+ * Read a null-terminated string from memory at a specific address
+ * Uses the VirtualT 'string' command
  * @param handle - vt_interact handle
  * @param address - Memory address to read from
  * @param buffer - Output buffer for string
@@ -253,15 +255,16 @@ bool vt_interact_get_screen_dump(vt_interact_handle_t handle, char* screen, size
 bool vt_interact_read_string(vt_interact_handle_t handle, uint16_t address, char* buffer, size_t buffer_size);
 
 /**
- * Read LCD memory and return it as a string
+ * Read raw memory from the 8085's address space
+ * Uses the VirtualT 'rm' (read memory) command to read bytes from any address
  * @param handle - vt_interact handle
- * @param address - Start address of LCD VRAM
+ * @param address - Memory address to read from
  * @param length - Number of bytes to read
- * @param output - Output buffer for string
+ * @param output - Output buffer for memory contents (converted to printable ASCII)
  * @param output_size - Size of output buffer
  * @return true on success, false on failure
  */
-bool vt_interact_read_lcd_memory(vt_interact_handle_t handle, uint16_t address, size_t length, char* output, size_t output_size);
+bool vt_interact_read_memory(vt_interact_handle_t handle, uint16_t address, size_t length, char* output, size_t output_size);
 
 /* ============================================================================
  * Helper Functions

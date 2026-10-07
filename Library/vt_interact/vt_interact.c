@@ -544,12 +544,12 @@ static int parse_rm_response(const char* response, uint8_t* buffer, size_t buffe
     return (int)pos;
 }
 
-/* Read LCD memory from specified address */
-static bool read_lcd_memory(vt_interact_handle_t handle, uint16_t address, uint8_t* buffer, size_t length) {
-    vt_interact_log("DEBUG: read_lcd_memory(address=%d, length=%zu)", address, length);
+/* Read memory from specified address (8085 address space) */
+static bool read_memory(vt_interact_handle_t handle, uint16_t address, uint8_t* buffer, size_t length) {
+    vt_interact_log("DEBUG: read_memory(address=%d, length=%zu)", address, length);
     vt_interact_internal_t* internal = (vt_interact_internal_t*)handle;
     if (!internal || !internal->socket || !buffer || length == 0) {
-        vt_interact_set_error("Invalid arguments to read_lcd_memory");
+        vt_interact_set_error("Invalid arguments to read_memory");
         return false;
     }
 
@@ -569,7 +569,7 @@ static bool read_lcd_memory(vt_interact_handle_t handle, uint16_t address, uint8
 
     if (!vt_socket_send_command(internal->socket, cmd, response, sizeof(response))) {
         vt_interact_log("DEBUG: rm command failed");
-        vt_interact_set_error("Failed to read LCD memory");
+        vt_interact_set_error("Failed to read memory");
         return false;
     }
     vt_interact_log("DEBUG: rm command succeeded, response length=%zu", strlen(response));
@@ -580,7 +580,7 @@ static bool read_lcd_memory(vt_interact_handle_t handle, uint16_t address, uint8
     return count == (int)length;
 }
 
-/* Convert LCD memory bytes to string, filtering non-printable chars */
+/* Convert memory bytes to string, filtering non-printable chars */
 static void lcd_bytes_to_string(const uint8_t* bytes, size_t length, char* output, size_t output_size) {
     size_t pos = 0;
     for (size_t i = 0; i < length && pos < output_size - 1; i++) {
@@ -978,17 +978,17 @@ bool vt_interact_send_keystrokes(vt_interact_handle_t handle,
     }
 
     if (read_length == 0) {
-        vt_interact_set_error("No bytes to read from LCD memory");
+        vt_interact_set_error("No bytes to read from memory");
         if (error_code) *error_code = VT_INTERACT_ERROR;
         return false;
     }
 
-    vt_interact_log("DEBUG: Reading LCD memory");
-    if (!read_lcd_memory(handle, read_address, lcd_buffer, read_length)) {
+    vt_interact_log("DEBUG: Reading memory");
+    if (!read_memory(handle, read_address, lcd_buffer, read_length)) {
         if (error_code) *error_code = VT_INTERACT_ERROR;
         return false;
     }
-    vt_interact_log("DEBUG: LCD memory read complete");
+    vt_interact_log("DEBUG: Memory read complete");
 
     /* Convert to string, filtering null and backspace */
     char actual_output[320];
@@ -1067,10 +1067,10 @@ bool vt_interact_read_string(vt_interact_handle_t handle, uint16_t address, char
  * Read LCD memory and return it as a string
  * Reads raw bytes from LCD VRAM and converts to printable string
  */
-bool vt_interact_read_lcd_memory(vt_interact_handle_t handle, uint16_t address, size_t length, char* output, size_t output_size) {
+bool vt_interact_read_memory(vt_interact_handle_t handle, uint16_t address, size_t length, char* output, size_t output_size) {
     vt_interact_internal_t* internal = (vt_interact_internal_t*)handle;
     if (!internal || !internal->socket || !output || output_size == 0) {
-        vt_interact_set_error("Invalid arguments to vt_interact_read_lcd_memory");
+        vt_interact_set_error("Invalid arguments to vt_interact_read_memory");
         return false;
     }
 
@@ -1084,7 +1084,7 @@ bool vt_interact_read_lcd_memory(vt_interact_handle_t handle, uint16_t address, 
     snprintf(command, sizeof(command), "rm %u %zu", address, length);
 
     if (!vt_socket_send_command(internal->socket, command, response, sizeof(response))) {
-        vt_interact_set_error("Failed to read LCD memory");
+        vt_interact_set_error("Failed to read memory");
         return false;
     }
 

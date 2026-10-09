@@ -195,7 +195,7 @@
                7.2.1.19   NULBUF · · · · · · · · · · · · · · · · · · · ·  95
                7.2.2    Part II ( VRAM Area For LCD )  · · · · · · · · ·  98
                7.2.3    Part III ( Bookkeeping Area For BIOS)  · · · · ·  98
-               7.2.4    FCB (file Control Block) · · · · · · · · · · · ·  99
+               7.2.4    FCB (File Control Block) · · · · · · · · · · · ·  99
 
        CHAPTER 8      RAM FILE HANDLING
                8.1    WHAT SHOULD WE DO IN RAM FILE HANDLING · · · · · ·  103
@@ -1276,47 +1276,53 @@
                          The RAM bank number is always stored in RAM #0. On
                     turning on, the 1st ROM and RAM #0 is selected
                     automatically. And the bank-switching procedure will be
-                   called in Power on sequence if the number of the RAM bank
-                   was not identical to the RAM #0 in the power down
-                   sequence. After changing the RAM bank, all registers will
-                   be restored and pending· procedure will be resumed.
-                   Therefore in the stack, the address of the process which
-                   was abandoned by Power down trap should be stored.
+                    called in Power on sequence if the number of the RAM bank
+                    was not identical to the RAM #0 in the power down
+                    sequence. After changing the RAM bank, all registers will
+                    be restored and pending procedure will be resumed.
+                    Therefore in the stack, the address of the process which
+                    was abandoned by Power down trap should be stored.
 
-                         In addition, in order to resume the abandoned process
-                   with 2nd ROM, you have to do special power on/power off
-                   sequence. In power off trap, you should the set the start
-                   routine of the special power-on sequence which switches
-                   the ROM bank. I recommend to use the hook, ^XF38F.
-                   Usually, "JUMP to POWER FAIL SEQUENCE" command is st~red
-                   here. In 2nd ROM, however, you have to rewrite this hook
-                   table and call the special power down routine here. In
+                          In addition, in order to resume the abandoned process
+                    with 2nd ROM, you have to do special power on/power off
+                    sequence. In power off trap, you should the set the start
+                    routine of the special power-on sequence which switches
+                    the ROM bank. I recommend to use the hook, ^XF38F.
+                    Usually, "JUMP to POWER FAIL SEQUENCE" command is stored
+                    here. In 2nd ROM, however, you have to rewrite this hook
+                    table and call the special power down routine here. In
 
                                              - 39 -
-t.
-'
+
+
      HOW TO USE 2ND ROM
 
-                     it, the address of special power-on routine on the stack.
-                     In this case, the following information should.be stacked
-                     before "HLT" command is executed.
+                    it, the address of special power-on routine on the stack.
+                    In this case, the following information should be stacked
+                    before "HLT" command is executed.
+                        
+                        |                       |
+                        |-----------------------|
+                        | resuming address      |
+                        |                       |
+                        |-----------------------|
+                        | starting address of   |
+                        |  the ROM switching    |
+                        |  routine              |
+                        |-----------------------|
+                        | Contents of Pointers  |
+                        |                       |<-- [STAKSV]
+                        |-----------------------|
 
-                            resuming address
+                        [STAKSV] keeps the SP's value at "HLT".
 
-                            starting address of           <-- CS°TAKSVJ
-                             the ROM switching
-                              routine
-
-                            Contents of Pointers
-
-                          CSTAKSVJ keeps the SP's value at "HLT".
-                          Fig 3.1
+                        Fig 3.1
 
                4. POWER ON
 
                               At the first, .the initializing routine in ROM #0
-                    checks the RAM bank number in BANK (^XF308) when power-off
-                    was exe~uted. When power-off was done in non-standard RAM
+                    checks the RAM bank number in BANK (^XF3D8) when power-off
+                    was executed. When power-off was done in non-standard RAM
                     bank, RAM bank-switching routine is called and switched.
                     Then, the registers' contents will be restored. If the
                     address of the process which should be resumed was
@@ -1328,58 +1334,57 @@
                     resumed.
 
                                               - 40 -
-      HOW TO USE 2ND ROM
+
+      HOW TO USE 2ND ROM
+
                 The following figure are the general 2nd ROM routine control
                 sequence.
 
-                                                           .
-
-                                 : MENU mode of 1st ROM:
-
-                                                                   A
-
-                                    :- select 2nd ROM
-
-                                    I
-                                    I
-
-                                    V
-
-                          ---------------------------------------~---
-
-                            :--------------
-
-                               INITIALIZE                      RETURN
-
-                                                                   :-Return
-
-                             I
-                             I
-
-                             : Main routine of 2nd ROM
-
-                                                                   I
-                                                                   I
-
-                                    +-Turn off power switch:
-
-                                POWER DOWN : .                POWER ON .
-
-                                                                   ...
-
-                                                                   :-Turn on
-                                                                        power switch
-
-                                    V               0 F F
-
-                                    P O WE R
-
-                                     Fig 3.2
+                             -------------------------------
+                             |                             |
+                             |    MENU mode of 1st ROM     |
+                             |                             |
+                             -------------------------------
+                                |                       ^
+                                |- select 2nd ROM       |
+                                |                       |
+                                V                       |
+                        ------------------------------------------
+                        |       |                       |        |
+                        | ---------------       ---------------  |
+                        | | INITIALIZE  |       |    RETURN   |  |
+                        | |             |       |             |  |
+                        | ---------------       ---------------  |
+                        |       |                       |-Return |
+                        | -------------------------------------- |
+                        | |                                    | |
+                        | | Main routine of 2nd ROM            | |
+                        | |                                    | |
+                        | -------------------------------------- |
+                        |       |                       |        |
+                        |       +-Turn off power switch |        |
+                        | ---------------       ---------------- |
+                        | |             |       |              | |
+                        | |  POWER DOWN |       |   POWER ON   | |
+                        | |             |       |              | |
+                        | ---------------       ---------------- |
+                        |       |                       |        |
+                        ------------------------------------------
+                                |                       ^
+                                |                       |-Turn on
+                                |                       |   power switch
+                                V                       |
+                        ------------------------------------------
+                        |                                        |
+                        |               POWER OFF                |
+                        |                                        |
+                        ------------------------------------------
+                                 Fig 3.2
 
                                               - 41 -
-r
+
 
-Jr HOW TO USE 2ND ROM
+      HOW TO USE 2ND ROM
 
                 3.5 SUMMARY -- IMPORTANT NOTICE
 
@@ -1408,231 +1413,187 @@ Jr HOW TO USE 2ND ROM
 
                3. PC-8201A book keeping area
                                The book keeping area are very important for this
-
                      system, so you never change that area without careful
-                     consideration. Please read Chapter 7 "aoOK KEEPING AREA".
+                     consideration. Please read Chapter 7 "BOOK KEEPING AREA".
 
                4. Power on/off sequence
                                Please use power off interrupt to detect the power
-
                      down. I suggest that you had better use the real time
-                     interrupt service.to poll the power down signal.
+                     interrupt service to poll the power down signal.
 
                                               - 42 -
-     HOW TO USE 2ND ROM
-                         If you want to use 1st ROM entry from 2nd ROM, please
 
+
+     HOW TO USE 2ND ROM
+
+                         If you want to use 1st ROM entry from 2nd ROM, please
                take care of the following point. The all routines rewrite
                some work area sometimes. So, if you use 1st ROM entry from
-               2nd ROM witho~t understanding that routine's internal
+               2nd ROM without understanding that routine's internal
                specification, the system might be crashed. In addition,
-               interrupts and ·stack area are other important points. Refer
-               to 2.3 ·The method to use 1st ROM Entry from 2nd ROM· and its
+               interrupts and stack area are other important points. Refer
+               to 2.3 "The method to use 1st ROM Entry from 2nd ROM" and its
                sample program.
 
                                              - 43 -
-      HOU TO USE 2ND ROM -
+
+      HOW TO USE 2ND ROM
+
                 3.6 SAMPLE
 
-                          TITLE 2nd ROM sample header and useful routine
+                        TITLE 2nd ROM sample header and useful routine
 
                 ; <<< SYSTEM define label >>>
-                BANK EQU             "'XF3DB             ; Bank save area
-                ATIDSV EQU           "'XF382
-                PWHOK EQU            "'XF386             ': Power on hook table ·
-                RST55 EQU            "'XF389
-                STAKSV EQU           "'XF9AE             ; Rst 5.5 hook table
-                AUTOID EQU           ""X9C0B
-                SAVSTK EQU           "'XFA00             ·
-                STATUS EQU           "'XA0
-                BNKCRL EQU           "'XA1               · '
-                PWPORT EQU          "'XB8                ' ·
-                PORTS EQU            ""XBA               ;' Bank status
+                BANK    EQU     ^XF3DB        ; Bank save area
+                ATIDSV  EQU     ^XF382        ;
+                PWHOK   EQU     ^XF386        ; Power on hook table ·
+                RST55   EQU     ^XF389        ; Rst 5.5 hook table
+                STAKSV  EQU     ^XF9AE        ; 
+                AUTOID  EQU     ^X9C0B        ;
+                SAVSTK  EQU     ^XFAD0        ;
+                STATUS  EQU     ^XA0          ; Bank status
+                BNKCRL  EQU     ^XA1          ; Bank control      
+                PWPORT  EQU     ^XB8          ; 81C55 chip select
+                PORTB   EQU     ^XBA          ; 81C55 port B
 
-                FREE EQU            "'X????              : Bank control
-                                                         ; 81C55 chip select
-                ; <<< Main routine>>>                    ; 81CSS port 8
+                FREE    EQU     ^X????        ; You must set your ram
+                                              ; free portion address
+                ; <<< Main routine>>>
 
-                                                         ; You must set your ram
-                                                         : free portion address
+                        ORG     ^X0000
+                START:
+                        JMP     INIT          ; 2nd ROM start address
+                        ORG     ^X0024        ; Non maskable interrupt
+                                              ; table
+                        JMP     POWER         ; Power down trap
 
-                START:               INIT                : 2nd ROM start address
-                          JMP
+                        ORG      ^X002C       ; RST 5.5
+                        JMP      BARCOD       ; Barcode reader interrupt
+                                              ; table
 
-                          ORG       "'X0024              ; Non maskable interrupt
-                                                         : table
-                          JMP       POWER                ; Power down trap
+                        ORG      ^X0034       ; RST 6.5
+                        JMP      UART         ; UART interrupt table
 
-                          ORG       ""X002C              ; RST S.5
-                          JMP       BARCOO               ; Barcode reader interrupt
-                                                         : table
+                        ORG      ^X003C       ; RST 7.5
+                        JMP      TIMER        ; Timer interrupt table
 
-                          ORG       "'X0034              ; RST 6.5
-                          JMP       UART                 ; UART interrupt table
+                        ORG      ^X0040       ; ID code for 2nd ROM
+                        DB       'AB'         ; AB is ID code for 2nd ROM
 
-                          ORG       "'X003C              ; RST 7.5
-                          JMP                            ; Timer interrupt table
-                                    TIMER
-
-                          ORG       "'X0040              ; IO code for 2nd ROM
-                                    'AB'                 ; AB is ID code for 2nd ROM
-                          OB
-
-                          DB        '2NOROM'             ; File name which
-                                                         ; displayed in the MENU
+                        DB       '2NDROM'     ; File name which
+                                              ; displayed in the MENU
 
                 ; <<< Initialization of 2nd ROM program>>>
-                !NIT: LHLO SAVSTK                        ; Set stack pointer
+                INIT:   LHLD     SAVSTK       ; Set stack pointer
 
                                               - 44 -
-     HOW TO USE 2ND ROM
+
+     HOW TO USE 2ND ROM
 
-                          SPHL      SETTRP               , ·
-                          CALL      HINIT
-                          CALL      MAIN                 ; Set hook for resume
-                          JMP                            ; 2nd-ROM's program,
-                                                         ; and other routine into RAM.
-                                                         ; Hardware initialization
-                                                         ; Goto main routine
-
-                , ·
+                        SPHL                  ;
+                        CALL     SETTRP       ; Set hook for resume         
+                                              ; 2nd-ROM's program,
+                                              ; and other routine into RAM.               
+                        CALL     HINIT        ; Hardware initialization                   
+                        JMP      MAIN         ; Goto main routine
+                ;
                 ; <<< Hardware initialize routine>>>
-               HINIT: RET                                ;
+                HINIT:  RET                   ;
 
-               ·
+                ;
+                ;
+                ; <<< MAIN ROUTINE OF 2ND ROM>>>
+                ;
+                ;
+                MAIN:                         ; Main routine
 
-               , · '
+                ; <<< Set up hook >>>
+                ; Set up hook table for 2nd ROM
+                SETTRP: MVI      A,^B00000001 ; Select standard RAM
+                        OUT      BANKCRL      ; Select!
+                        LXI      H,DTBL       ; Set some codes into RAM
+                        LXI      D,PWHOK      ; for power on sequence
+                        MVI      B,TBLEND-DTBL;
+                        CALL     COPY         ;
+                        LXI      H,TBLHOOK    ; Return code table
+                        LXI      B,HOKE-TBLHOK; Set length
+                        CALL     COPY         ;
+                        RET                   ;
 
-               ; <<< MAIN ROUTINE OF 2ND ROM>>>
+                ; [DE] <- [HL]
+                COPY:   MOV      A,M          ; Read [HL]
+                        STAX     D            ; Save [DE]
+                        INX      H            ;
+                        INX      D            ; Next address set
+                        DCR      B            ; Decrement counter
+                        JNZ      COPY         ; Loop until done
+                        RET                   ;
 
-               , ·
-               , ·
+                ; The following code will be copied in RAM
+                ; portion for re-power on sequences
+                ; these part are interrupt hook table.
+                ;
+                DTBL    EQU     $               ; These code will be
+                        MVI     A,^B00000001    ; copied into RAM
+                        OUT     BNKCRL          ; Bank select!
 
-               MAIN:                                     ; Main routine
+                                   
 
-               ; <<< Set up hook>>>
-               ; Set up hook table for 2nd ROM
-               SETTRP: MVI          A,"'800000001 · Select standard RAM
-                         OUT        BNKCRL              '· Select!
-                         LXI        H,DTBL              ·' Set some codes into RAM
-                                    D,PWHOK             '·, for power on sequence
-                         LXI        B,TBLEND-DTBL ·,
-                         MVI
-                         CALL COPY                      , ·
-                                    H,TBLHOK            ,· Return code table
-                         LXI        D,FREE              ,· Free area of RAM portion
-                        .LXI
-                         LXI        B,HOKE-TBLHOK · Set length
-                         CALL COPY                      , ' ·
-                                                        , ·
-                         RET
+                                              - 45 -
+
 
-               ,· CDEJ  <- CHLJ    A,M                  · Read CHLJ
+HOW TO USE 2ND ROM
 
-               COPY:     MOV       0                    ·,' Save CDEJ
-                         STAX
-                         INX       H                    ·
-                         INX       D
-                         OCR                            ,'· Next address set
-                         JNZ       B                    ,· Decrement counter
-                         RET
-                                   COPY                 ,· Loop until done
-                                                        , ·
-
-               ·
-
-               ;' The following code will be copied in RAM
-
-               ; portion for re-power on sequences
-               ; these part are interrupt hook table ·
-
-               , ·
-
-               DTBL EQU            $                    ; These code will be
-                         MVI                            ; copied into RAM
-                         OUT       A,'"'800000001       ; Bank select!
-
-                                   BNKCRL
-
-                                                45 -
-~
-
-v HOW TO USE 2ND ROM
-
-                          JMP        Pl.JON               ; Jump power on trap
-
-                BANK!: OS            1                    , ·
-                TSLENO EQU
-                                     $
+                        JMP        PWON         ; Jump power on trap
+                BANKI:  DS         1            ;
+                TBLEND  EQU        $
 
                 ;                                           -
                 ; The following code will be copied
+                ;  in RAM portion for return 1st ROM
+                ,
+                TBLHOK  EQU     $
+                RETSB:  XRA     A               ; Clear A
+                        OUT     BNKCRL          ; Select 1st ROM and
+                                                ; standard RAM
+                        JMP     ^X0000          ; Return!
+                HOKE    EQU     $
 
-                ; in RAM portion for return 1st ROM
-                , ·
-                TBLHOK EQU
-                                     $
+                ; <<< RETURN >>>                      
 
-                RETSB: XRA           A                    ; Clear A
-                                                          ; Select 1st ROM and
-                           OUT       BNKCRL               ; standard RAM
+                RETURN: MVI     A,^B00000001    ; Select standard RAM
+                        OUT     BNKCRL          ;
+                        MVI     A,^B00000000    ;
+                        STA     BANK            ;
+                        LXI     H,^X0000        ; Reset
+                        SHLD    ATIDSV          ;
+                        LXI     H,RTBL          ; Rewrite code table
+                        LXI     D,PWHOK         ; Interrupt hook table set
+                        LXI     B,RTBLE-RTBL    ; Set length
+                        CALL    COPY            ;
+                        JMP     RETSB           ; Return to 1st   
+                                                ; ROM's menu mode
+                ; The following code will be copy                               ·
+                ; in standard ram portion ·
+                ;
+                RTBL    EQU     $
+                        RET                     ; Power on hook
+                        NOP
+                        NOP
+                        EI                      ; RST S.S hook
+                        RET
+                        NOP
+                RTBLE   EQU     $
 
-                          JMP        "'X0000              ; Return!
+                ; <<< Power on >>>
 
-                HOKE EQU             $
-
-                ; <<< RETURN     >>>                      ; Select standard RAM
-
-                RETURN: MVI         A,"'800000001         , ·
-                          OUT       BNKCRL                , ·
-                          MVI       A,"B00000000          , ·
-                          STA       BANK
-                          LXI       H,"'X0000             ; Reset
-                          SHLD      ATIOSV
-                          LXI       H,RTBL                , ·
-                          LXI       O,PWHOK
-                          LXI       B,RTBLE-RTBL          ; Rewrite code table
-                          CALL      COPY                  ; Interrupt hook table set
-                                    RETSB                 ; Set length
-                          JMP
-                                                          , ·
-
-                                                          ; Return to 1st
-                                                          ; ROM's menu mode
-
-                , ·
-
-                 ; The following code will be copy                               ·
-                 ,· in standard ram portion ·
-                 ·
-                R' TBL EQU
-                                     $
-
-                          RET                             ; Power on hook
-
-                           NOP
-                           NOP
-                           EI                             ; RST S.S hook
-
-                          RET
-
-                           NOP
-                RTBLE EQU
-                                     $
-
-                ; <<<   Power on    >>>                  · ,
-
-                PWON:     CALL       HINIT               ; Select old RAM bank
-                          LOA        BANKI-DTBL
-                                     BNKCRL              ·
-                          OUT        STAKSV
-                                                         '; Restore stack pointer
-                          LHLD       PSW                 , ·
-                          SPHL
-                                     8                   , ·
-                          POP                            · ,
-
-                          POP
+                PWON:     CALL       HINIT      ;
+                          LDA        BANKI-DTBL ; Select old RAM bank
+                          OUT        BNKCRL     ;
+                          LHLD       STAKSV     ; Restore stack pointer
+                          SPHL                  ;
+                          POP        PSW        ;
+                          POP        B          ;
 
                                                - 46 -
     HOW TO USE 2ND ROM                                   ..
@@ -2783,305 +2744,290 @@ v HOW TO USE 2ND ROM
 
                  6.1 DIRECTORY CONFIGURATION PER ENTRY
 
-                           The directory area is allocated in th~ middle of the
-
+                           The directory area is allocated in the middle of the
                  bookkeeping area. The top of the address is F84F in
-
                  hexadecimal. The directory configuration is shown below.
 
-                           OIRTBL:    BASIC <--------- ^XF84F
+                           DIRTBL:    BASIC <--------- ^XF84F
+                                      FILER
+                                      TELCOM
+                           NULDIR:    (Directory for non-registered program)
+                           SCRDER:    (Directory for SCRAP)
+                           EDTDIR:    (Oirectory for EDIT command)
+                           USRDIR:    (Directory for user-defined files)
+i                                                  :
+                                      (( End-of-directory)) ^XFF
 
-                           NULOIR:    FILER
-                           SCRDER:
-                           EDTOIR:    TELCOM
-                           USRDIR:    (Directory for non-r-egister-ed pr-ogram)
-                                      (Directory for- SCRAP)
-                                      (Oirector-y for- EDIT command)
-                                      <Director-y for- user--defined files)
+                           rf. The non-registered program means non-saved BASIC
+                           program. Refer to "BA file" in the previous section.
 
-                                                · ·
-
-                                      (( End-of-directory)) AXFF
-
-                          r-f. The non-r-egistered progr-am means non-saved BASIC
-                         . program. Refer- to "eA file" in the pr-evious section.
-
-                           ·Directory for- SCRAP· and ·oirectory for- EDIT command·
-                          ar-e explained in ·oo"file".
+                           "Directory for SCRAP" and "Directory for EDIT command"
+                           are explained in "DO file".
 
                            Each slot in the directory consists of 11 bytes, 1
                  byte flag, 2 bytes address and 8 bytes file name. The first 6
-                 slots in directory ar-ea ar-e initialized by INIT routine at the
-                 COLO START.
+                 slots in directory area are initialized by INIT routine at the
+                 COLD START.
 
                                                - 76 -
              DIRECTORY STRUCTURE
 
-                                 Oirf slot's configuration per entry
+                                 Directory slot's configuration per entry
 
-                                 Dir-Y f 1ag             (1 byte)
-                                 Adcfiel d
-                                 Fi 1e                   (2 bytes)
-                                 · Tota 1 11             (8;bytes)
+                                 Directory flag             (1 byte)
+                                 Address field              (2 bytes) 
+                                 Filename                   (8 bytes)
+                                        Total 11 bytes.
 
-                                                bytes.
+                                Bit Assignment of Directory flag
 
-                                Bi~gnment of Directory flag
+                       -------------------------------------------------
+                    MSB |  7  |  6  |  5  |  4  |  3  |  2  |  1  |  0  |
+                        -------------------------------------------------
 
-                                Bi-Master bit            (1 when directory valid)        file)
-                                Bi ASCII bit
-                                Bi Binary bit            (1 when ASCII-text file)
-                                Bi File-in-ROM           (1 when Machine-language
-                                Bi' Hidden fi 1e         ( 1 when file is in ROM)
 
-                                                         (1 when file is hidden)
+                                Bit 7 - Master bit      (1 when directory valid)
+                                Bit 6 - ASCII bit       (1 when ASCII-text file) 
+                                Bit 5 - Binary bit      (1 when Machine-language file)
+                                Bit 4 - File-in-ROM     (1 when file is in ROM)  
+                                Bit 3 - Hidden file     (1 when file is hidden)
+                                Bit 2 -
+                                Bit 1 - RAM file open flag
+                                Bit 0 - for internal use (always set to 0
+                                normally)
 
-                                Bi
-                                Bf RAM file open flag
+                                Semantics of 2-byte Address Field
+                                Depends on file type
 
-                                Sj for internal use (always set to 0 normally)
+                                B? - Address which TXTTAB must be set to
+                                D? - Beginning address of text (DO) file
+                                C? - Beginning address of binary (CO) file
 
-                                VPf address-field
-
-                               B, e - Address which TXTTAB must be set to
-
-                               oe - Beginning address of file
-
-                               c,e -          ditto
-
-                               ,XTTAB in BASIC shows the lowest byte of the file,
-                     the fir~ink pointer in the BASIC program file. Please
+                                2nd character of file type/extension can vary
+                                and the file will be treated the same, hence
+                                the ?
+                                                      
+                               TXTTAB in BASIC shows the lowest byte of the file,
+                     the first link pointer in the BASIC program file. Please
                      refer to her manual to understand what 'link pointer' is,
-                     if you wco handle the BASIC programs.
+                     if you want to handle the BASIC programs.
 
-                               :nitialized values for first 6 slots in Directory
-
-                     are shooelow. The first 3 files are stored in ROM and
-
-                     displaye,the menu screen. (These 3 files are called the
-
-                     'standar~ograms".) Next 3 files are used for hidden files
-
-                    created AM area. These hidden files will not appear on
-
-                    the Menueen. Refer to previous section, 'DO file' and 'BA
-
-                    file'.       characteristics· of these hidden files are
-
-                    describeiere.
+                               Initialized values for first 6 slots in Directory
+                     are shown below. The first 3 files are stored in ROM and
+                     displayed on the menu screen. (These 3 files are called the
+                     "standard programs".) Next 3 files are used for hidden files
+                     created in RAM area. These hidden files will not appear on
+                     the Menu screen. Refer to previous section, "DO file" and "BA
+                     file". The characteristics of these hidden files are
+                     described there.
 
                                               - 77 -
      DIRECTORY STRUCTURE
 
-                                                         ·· ·-1    (Initialized data
+                         rf. First 6 slots in Directory (Initialization data
+                         stored at ^X6C8E... this data copied to live
+                         directory at cold start)
 
-                          rf. First 6 slots in Directory
-                          stored in ^X6C8E)
+                         DB         ^B1011000
+                         DW         ; Start address of BASIC
+                         DB         'BASIC  ',0
 
-                         08         AB1011000
-                                    Start ad,dress of a=p.sic
-                         DI.J       'BASIC
+                         DB         ^B10110000
+                         DB         ; Start address of TEXT
+                         DB         'TEXT   ',0
 
-                         DB
-                         DB         0
-
-                         DB         AB101-10000
-
-                         01.J       Start ad,dress of TEXT
-                                    'TEXT
-                         08
-                         DB
-                                    0
-
-                         OB         ""B10110000
-                                    Start address of TELCOM
-                         01.J       'TELCOM'
-                         OB
-
-                         DB         0
+                         DB         ^B10110000
+                         DW         ; Start address of TELCOM
+                         DB         'TELCOM ',0
 
                          ;for non-registered program
 
-                         DB         "'B10001000
-                         DI.J 0 ·
-                         DB        0
+                         DB         ^B10001000
+                         DW         0
+                         DB         0
                          DB         'XXXXXXX'
 
                          ;for SCRAP file
 
-                         OB        ""B11001000
-                         DI.J
-                                   0
-                         08
-                                   0
+                         DB         ^B11001000
+                         DW         0
+                         DB         0
                          DB         'YYYYYYY'
 
                          ;for EDIT command of BASIC
 
-                         DB        AB01001000
-                         DI.J      0
+                         DB         ^B01001000
+                         DW         0
+                         DB         0
+                         DB         'ZZZZZZZ'
 
-                         OB        0
-                         DC         'ZZZZZZZ'
+                                                78 -                                                
+                                               APTER 7
+                                          RAM ORGANIZATION
 
-                                                78 -
-                                               ~PTER 7
-                                               ~GANIZATION
-                                              ~ FILES
-                                              ~pter 2 to understand the whole of the
-                                              I are stored with the fixed order. It
-                                              .Jes, the BASIC programs which has the
-                                              j at the bottom of the RAM area, near
-                                              ~II files, the suffix is ".00") are
+                7.1 MEMORY MAP ABOUT RAM FILES
+
+                                              apter 2 to understand the whole of the
+
+                   (DAMAGED SCAN)              are stored with the fixed order. It
+                                              les, the BASIC programs which has the
+                                               at the bottom of the RAM area, near
+                                              SCII files, the suffix is ".DO") are
                                               files. And CO files, the Machine
-                                              ,CO" are saved above the DO files, near
-                                              (llustration will help you understand
+                                              .CO" are saved above the DO files, near
+                                              llustration will help you understand
 
                  -~
 
                                               - 79 -
        RAM ORGANIZATION
-                 1. There are S files in RAM.
 
-                           ^XFFFF ~--------------- I ""
-                                     :Bookkeeping I
+                 1. There are 5 files in RAM.
 
-                                         Area             I
-                                                          I
-                                     -:F--r-e-e----a--r-e---a----&-----II
-                                      :Data area          lUpper
-
-                                         MACHIN.CO        ,I .
-                                         DIARY.DO
-                                         MEMO.DO          I
-                                                          I
-
-                                                          :Lower
-
-                                        GRAPH.BA            V
-                                        GAME.BA
-                                     Fig 7.1.             I
-                                                          I
-
-                                                          :<- BOTTOM
+                        ^XFFFF -----------------
+                               |Bookkeeping    |  ^
+                               |  Area         |  |
+                               =================  |
+                               |Free area &    |
+                               |Data area      |Upper
+                               |               |
+                               -----------------
+                               |               |
+                               |  MACHIN.CO    |
+                               |               |
+                               -----------------
+                               |               |
+                               |  DIARY.DO     |
+                               |               |
+                               -----------------
+                               |               |
+                               |  MEMO.DO      |Lower
+                               |               |
+                               -----------------
+                               |               | |
+                               |  GRAPH.BA     | |
+                               |               | V
+                               -----------------
+                               |               |
+                               |  GAME.BA      |
+                               |               |<- BOTTOM
+                               -----------------
+                                     Fig 7.1
 
                                                - 80 -
      RAM ORGANIZATION
           2. Add new BASIC file, GOLF.
 
-                                                  ·       --
-
-                                    ----------------- <---
-
-                                A   I MACHIN.CO
-                                    I
-                          Upper
-                                                           Moved
-                          Lower     ----------------- up
-
-                                I   I DIARY.DO
-                                I   I
-
-                                V   -----------------
-
-                                    I MEMO.DO
-                                    I
-
-                                    -II --------------- <---
-                                                         :<-- Added here
-                                    I GOLF.BA
-                                    I
-
-                                    ---------------- <---·
-
-                                    I GRAPH.BA
-                                    I
-
-                                    -I ----------------    Not
-                                                            Changed
-
-                                                               I
-
-                                    I                          .I
-
-                                    II GAME.BA
-
-                                    ----------------- <---
-
+                               |               |
+                               |               |
+                               ----------------- <---
+                               |               |    |
+                            ^  |  MACHIN.CO    |    |
+                            |  |               | Moved
+                            |  -----------------  up
+                       Upper   |               |    |
+                               |  DIARY.DO     |    |
+                               |               |    |
+                               -----------------    |
+                               |               |    |
+                               |  MEMO.DO      |    |
+                               |               |    |
+                               ----------------- <---
+                               |               |
+                               |  GOLF.BA      |<-- Added here
+                               |               |
+                               ----------------- <---
+                               |               |    |
+                       Lower   |  GRAPH.BA     |    |
+                            |  |               | Not
+                            |  -----------------  Changed
+                            V  |               |    | 
+                               |  GAME.BA      |    |
+                               |               |    |
+                               ----------------- <---
+ 
                                     Fig 7.2
 
                                               - 81 -
       RAM ORGANIZATION
 
-           3. Add new ASCII file, ADORES. --~
+           3. Add new ASCII file, ADDRES.
 
-                                ,.  -----------------II <--
-                          Upper-
-                                     l MACHIN.CO         I
-
-                                                         .'
-
-                                    ----------------- Moved
-
-                                                             up
-
-                                    : DIARY.DO
-
-                                                               ,I .
-
-                                                               I
-                                                               I
-
-                                    : MEMO.DO
-
-                                                           <--
-
-                                    : ADORES.DO            <-- Inserted
-
-                                                                  here
-
-                                                           <---
-
-                            Lower- GOLF.BA
-
-                                    -------------- Not
-                                V                           changed
-                                      GRAPH.BA
-
-                                    : GAME.BA
-
-                                    -----------------<----
-
+                               |               |
+                               |               |
+                               ----------------- <---
+                               |               |    |
+                            ^  |  MACHIN.CO    |    |
+                            |  |               | Moved
+                            |  -----------------  up
+                       Upper   |               |    |
+                               |  DIARY.DO     |    |
+                               |               |    |
+                               -----------------    |
+                               |               |    |
+                               |  MEMO.DO      |    |
+                               |               |    |
+                               ----------------- <---
+                               |               |
+                               |  ADDRES.DO    |<-- Inserted here
+                               |               |
+                               ----------------- <--- 
+                               |               |    |
+                               |  GOLF.BA      |    |
+                               |               |    |
+                               ----------------- Not           
+                               |               |  Changed
+                       Lower   |  GRAPH.BA     |    | 
+                            |  |               |    |
+                            |  -----------------    |
+                            V  |               |    |
+                               |  GAME.BA      |    |
+                               |               |    |
+                               ----------------- <---
+ 
                                     Fig 7.3
 
                                               -·82 -
       RAM ORGANIZATION
-                Add new CO file, CHAR.CO -4
 
-                                ...  : CHAR.CO           l<-- Inserted here
+           4. Add new CO file, CHAR.CO
 
-                          Upper     ----------------- <---
-
-                                    : MACHIN.CO
-
-                                     : DIARY.DO
-
-                                    l MEMO.DO              Not changed
-
-                                    : ADORES.DO
-
-                                    I
-                                    I
-
-                            Lower : GOLF.BA
-
-                               V
-
-                                   : GRAPH.BA
-
-                                    l GAME.BA
-
-                                    ----------------<----
+                               |               |
+                               |               |
+                               -----------------
+                               |               |
+                               |  CHAR.CO      | <-- Inserted here
+                            ^  |               |
+                            |  ----------------- <---
+                            |  |               |    |
+                       Upper   |  MACHIN.CO    |    |
+                               |               |    |
+                               -----------------    |
+                               |               |    |
+                               |  DIARY.DO     |    |
+                               |               |    |
+                               -----------------    |
+                               |               |    |
+                               |  MEMO.DO      |    |
+                               |               |    |
+                               -----------------    |
+                               |               | Not changed   
+                               |  ADDRES.DO    |    |
+                               |               |    |
+                               -----------------    | 
+                               |               |    |
+                       Lower   |  GOLF.BA      |    |
+                             | |               |    |
+                             | -----------------    |
+                             V |               |    |
+                               |  GRAPH.BA     |    | 
+                               |               |    |
+                               -----------------    |
+                               |               |    |
+                               |  GAME.BA      |    |
+                               |               |    |
+                               ----------------- <---
+ 
 
                                     Fig 7.4
 
@@ -3102,48 +3048,46 @@ v HOW TO USE 2ND ROM
                                    Non-registered program is created just
                                    under the ASCII file.
 
-                                              : ASCII1.DO          I A
-                                                                   I
-
-                                                                       Upper
-
-                                                                  I
-                                                                  I
-
-                                                non-registered:
-                                                program
-
-                                              ----------------- Lower
-
-                                              : BASIC2.BA            V
+                                           |               |
+                                           -----------------
+                                           |               | ^
+                                           | ASCII1.DO     | |
+                                           |               | | Upper
+                                           -----------------
+                                           |               |
+                                           | non-registered|
+                                           | program       |
+                                           |               |
+                                           ----------------- | Lower
+                                           |               | |
+                                           | BASIC2.BA     | V
+                                           |               |
+                                           -----------------
 
                                     Fig 7.5 Position of non-registered program
 
                                              - 84 -
       RAM ORGANIZATION
 
-                          The detail information· about                    the      directory
-
-                configuration is described in "Directory structure" · The
-
+                          The detail information about the directory
+                configuration is described in "Directory structure". The
                 bookkeeping area and the directory area are situated at the
-
                 top of RAM area.
 
-                                     "'XFFFF ----------------- <---.
-
-                                    "'XF977                               I
-                                                                          I
-                                    "'XF84F
-                                               I                    I     I
-                                               I                    I     I
-
-                                               : Directory area: bookkeeping
-
-                                               I                           area
-                                               I
-
-                                    "'XF380 ----------------- <---
+                                ^XFFFF  ----------------- <---
+                                        |               |    |
+                                        |               |    |
+                                ^XF977  -----------------    |
+                                        |               |    |
+                                        | Directory area| bookkeeping
+                                        |               |     area
+                                ^XF84F  -----------------
+                                        |               |
+                                        |               |
+                                        |               |
+                                        |               |
+                                ^XF380  -----------------
+                                        |               |
 
                                     Fig 7.6 Directory position
 
@@ -3152,7 +3096,7 @@ v HOW TO USE 2ND ROM
 
                 7.2 BOOKKEEPING AREA
 
-                          The book-keeping area is lQcated at the top of the RAM
+                          The book-keeping area is located at the top of the RAM
                 area. The area is divided into 3 parts. The first part,
                 lowest part from ^XF380 to ^XFBBF, includes the pointers and
                 flags for RAM file handling. And many BASIC interpreter's
@@ -3161,40 +3105,37 @@ v HOW TO USE 2ND ROM
 
                           The second part, ^XFBC0 to ^XFE3F, is used for the
                 line buffer. of LCD display. BASIC uses this area in the
-               Screen Editor function, also. But the concept of this line
-                buffer is different from the VRAM in the traditional disk top
-                personal computer. Only the character- codes are stored in
+                Screen Editor function, also. But the concept of this line
+                buffer is different from the VRAM in the traditional desktop
+                personal computer. Only the character codes are stored in
                 this buffer. There is no attribute data. The attribute data
                 is stored in another table. Refer to the chapter 9,
-               explanation about the LCD driver.
+                explanation about the LCD driver.
 
                           The third part, ^XFE40 to ^XFFFF, is reserved by BIOS.
-               The switches and data storage for RS-232C, Key Board and other
+                The switches and data storage for RS-232C, keyboard and other
                 I/O drivers are stored here.
 
-                          ^XFFFF    ----------------
-                                    ' I
+                          ^XFFFF  -----------------
+                                  |               |
+                                  | Part III      | BIOS's data
+                                  |               |
+                          ^XFE40  -----------------
+                                  |               |
+                                  | Part II       | LCD buffer
+                                  |               |
+                          ^XFBC0  -----------------
+                                  |               | BASIC's data
+                                  | Part I        | File handling data
+                                  |               | Directory
+                          ^XF380  -----------------
 
-                                     : Part III            BIOS's data
-
-                          ^XFE40    -, ---------------
-
-                                    '
-
-                                     l Part II             LCD buffer
-
-                          ^XFBC0    -----------------I '   BASIC's data
-                                                         : File handling
-                          ^XF380                           Directory
-                                    : Part I             :.                  data
-                          Fig 7.7
-                                    -----------------
-                                    Bookkeeping area
+                         Fig 7.7 Bookkeeping area
 
                                               -~-
      RAM ORGANIZATION
 
-               7.2.1 Part I ( For RAM File Handl1ng And BASIC>
+               7.2.1 Part I ( For RAM File Handling And BASIC)
 
                           NOTE:                            . .
 
@@ -3216,104 +3157,75 @@ v HOW TO USE 2ND ROM
                operation of the standard ROM,ROM #0, for instance, power-on
                or next SAVE command in BASIC. Because the standard programs
                (BASIC, TEXT and TELCOM) and operating system (represented by
-
                Menu), believe that these pointers point the right address.
                So if a pointer which should point the lowest address of the
                DO files, points one byte smaller than it should point
-
                correctly, TEXT might not invoke any DO files in it. Please
-
                understand the purpose of each pointer and make sure that each
                pointer has a right value any time.
 
                          The important pointers for RAM files are listed below.
 
-                         ADDRESS <Hex> NAME                       SIZE (Decimal)
+                         ADDRESS (Hex)   NAME            SIZE (Decimal)
 
-                         F380                FSIOSV               2
-                         F384
-                         F459                HIMEM                2
-                         F450
-                         F84F                STKTOP               2
-
-                         F870                TXTTAB               2
-
-                         F87B                DIRTBL               33
-                         F886
-                                             NULDIR               11
-                         F891
-                         F9B0                SCROIR               11
-                         FA9A
-                         FABF                EOTOIR               11
-
-                         FAE1                USROIR               231
-
-                                             BOTTOM               2
-
-                                             MEMSIZ               2
-
-                                             FRETOP               2
-
-                                             ASCTAB               2
+                         F380            FSIDSV               2
+                         F384            HIMEM                2
+                         F459            STKTOP               2
+                         F45D            TXTTAB               2
+                         F84F            DIRTBL               33
+                         F870            NULDIR               11
+                         F87B            SCRDIR               11
+                         F886            EDTDIR               11
+                         F891            USRDIR               231
+                         F9B0            BOTTOM               2
+                         FA9A            MEMSIZ               2
+                         FABF            FRETOP               2
+                         FAE1            ASCTAB               2
+                         FAE3            BINTAB               2
+                         FAE5            VARTAB               2
+                         FAE7            ARYTAB               2
+                         FAE9            STREND               2
+                         FB63            FILTAB               2
+                         FB67            NULBUF               2
 
                                              - 87 -
-     RAM ORGANIZATION                         8INTAB               2
-
-                         FAE3                 VARTAB               2
-                         .FAES
-                         FAE7                 ARYTAB               2
-                         FAE9
-                         FB63                 STREND              2
-                         FB67
-                                              FILTAB               2
-
-                                              NULBUF              2
+     RAM ORGANIZATION 
 
                7.2.1.1 FSIDSV
 
-                         ADDRESS              "'XF380
+                         ADDRESS              ^XF380
                          SIZE                 2 bytes
 
                          Purpose             First power on or not
 
-                                   If this FSIDSV is not identical' with FRSTID
-
-                         ("'X8A4D), the initialization routine falls into the
-
-                         "coLD START" routine. In this case, the all data and
-
-                         files in PC-8201A are cleared. The "coLD START"
-
-                         routine sets FRSTID here                    after      done       the
-
+                                   If this FSIDSV is not identical with FRSTID
+                         (^X8A4D), the initialization routine falls into the
+                         "COLD START" routine. In this case, the all data and
+                         files in PC-8201A are cleared. The "COLD START"
+                         routine sets FRSTID here after done the
                          initialization. And no one may not change this ID
-
                          value.
 
               7.2.1.2 HIMEM
 
-                         ADDRESS             "'XF384
+                         ADDRESS             ^XF384
                          SIZE                2 Byte
 
                          PURPOSE             Highest memory available memory
 
                                   This pointer keeps the highest memory address
-
                         available for BASIC. The area between the address in
-                        this pointer and "'XF380 is reserved for the machine
+                        this pointer and ^XF380 is reserved for the machine
                         language file or another user's special working area.
-
                         No standard program will break the data in this area
-                        except POKE statement in BASIC. (The "poKE" statement
-
+                        except POKE statement in BASIC. (The "POKE" statement
                         can write on anywhere in the RAM which is selected
-
                         now. So be careful with the address in POKE statement
 
                                              - 88 -
       RAM ORGANIZATION
 
-                          when you use it for s~ori~g your machine language
+                          when you use it for storing your machine language
                           program or character data into RAM area.) The "HIMEM"
                           can be changed by the second parameter of "CLEAR"
                           statement in BASIC. Refer to the PC-8201A BASIC
@@ -3321,7 +3233,7 @@ v HOW TO USE 2ND ROM
 
                 7.2.1.3 TXTTAB
 
-                          ADDRESS             ^XF450
+                          ADDRESS             ^XF45D
                           SIZE                2 bytes
 
                           PURPOSE             Pointer to beginning of current
@@ -3333,12 +3245,10 @@ v HOW TO USE 2ND ROM
                        · address of the first link pointer is stored here. And
                          this value won't be changed in BASIC mode unless
                          "LOAD" command is executed to load another BASIC
-                         program, or "NEU" command. Almost internal routine
-
+                         program, or "NEW" command. Almost internal routine
                          for BASIC interpreter refers to this pointer to know
-                         the top of the current program. And this pointer 1s
+                         the top of the current program. And this pointer is
                          very important when a BA file is deleted, too. You
-
                          cannot kill a BA file in BASIC mode when this TXTTAB
                          points the BA file. Refer to "How to delete a BA
                          file".
@@ -3361,45 +3271,38 @@ v HOW TO USE 2ND ROM
       RAM ORGANIZAT.ION
 
                           The 2 byte space between MEMSIZ and FILTAB is kept for
-                          "vAL" function in BASIC. The "vAL" function sets ·0·
+                          "VAL" function in BASIC. The "VAL" function sets "0"
                           at the end of the strings on evaluating the strings.
                           So this 2 bytes area prevent to over-write the FCB
                           area above the FILTAB.
 
-                7.2.1.5 OIRTBL
+                7.2.1.5 DIRTBL
 
-                          ADDRESS              "XF84F
+                          ADDRESS              ^XF84F
                           SIZE                 33 bytes
 
                           PURPOSE              directory for program in ROM
 
-                                     The names and pointers for the programs 1n ROM
-
+                                     The names and pointers for the programs in ROM
                           are stored here. They are BASIC, TEXT and TELCOM. If
-
                           you don't want to use these standard programs, you can
-
                           use this area for your programs. This area will be
-                          kept until "coLO START" is invoked.
-                                                                                   Refer to
+                          kept until "COLD START" is invoked. Refer to
+                          "Directory construction."
 
-                           "oirectory construction."
+                7.2.1.6 NULDIR
 
-                7.2.1.6 NULOIR
-
-                          ADDRESS            . "XF870
-                          SIZE
-                                              11 bytes
+                          ADDRESS              ^XF870
+                          SIZE                 11 bytes
 
                           PURPOSE              Directory for non-registered program
 
                                     This area is kept for internal use. The
                           "non-registered program" that means the BASIC program,
-
                           just typed after selecting BASIC, uses this area for
                           pointing the starting address. There is a detail
-                          explanation about the 'non-registered" program in the
-                          previous section, 'BA file". And also, refer to
+                          explanation about the "non-registered" program in the
+                          previous section, "BA file". And also, refer to
                           "Directory Construction".
 
                                               - 90 -
@@ -3407,45 +3310,33 @@ v HOW TO USE 2ND ROM
 
               7.2.1.7 SCRDIR                               ·
 
-                         ADDRESS             "'XF87B
+                         ADDRESS             ^XF87B
                          SIZE                11 bytes
 
                          PURPOSE             Directory for SCRAP
+                                             (aka PASTE BUFFER)
 
-                                   The TEXT editor can do "sELECT", "cur", "copy"
-
-                         and "pAsr".           This directory is used for this
-
+                                   The TEXT editor can do "SELECT", "CUT", "COPY"
+                         and "PAST". This directory is used for this
                          "temporary file", SCRAP, in TEXT. This file is
-
-                         created when some characters are "sELECT.ed and
-
-                         "coPY.ed or "cur". (Refer to PC-8201A user's guide
-
-                         "sELECT", "cur", "copy" and "PAST "· ) This file is kept
-
+                         created when some characters are "SELECT"ed and
+                         "COPY"ed or "CUT". (Refer to PC-8201A user's guide
+                         "SELECT", "CUT", "COPY" and "PAST"·) This file is kept
                          even if you exit from TEXT. And you can use it in
-
                          another programs, BASIC, TELCOM and so on. If you CUT
-
                          or COPY without SELECT, the starting address points
-
                          Control-Z. It means that the SCRAP files is empty.
+                         Refer to "DO file" and "Directory Construction".
 
-                         Refer to "Do file" and "Directory Construction".
+              7.2.1.8 EDTDIR
 
-              7.2.1.8 EDTOIR
-
-                        ADDRESS              "'XF886
-                        S-IZE
-                                             -11 byte!!
+                        ADDRESS              ^XF886
+                        SIZE                 11 bytes
 
                         PURPOSE              Directory for EDIT in BASIC
 
                                   The EDIT command in BASIC makes a temporary DO
-
-                        file. This slot is used for this file. Refer to "no
-
+                        file. This slot is used for this file. Refer to "DO
                         file" and "Directory Construction".
 
               7.2.1.9 USRDIR
@@ -3460,17 +3351,16 @@ v HOW TO USE 2ND ROM
 
                                             - 91 -
 
-                                            /
       RAM ORGANIZATION
 
                                                               ·
                           here at most. The end of directory area is indicated
-                          by ·--xFF·, "Directory search stopper". Refer to"
-                          Directory Construction".
+                          by "^XFF", "Directory search stopper". Refer to
+                          "Directory Construction".
 
                 7.2.1.10 BOTTOM
 
-                          ADDRESS              "'XF9B0
+                          ADDRESS              ^XF9B0
                           SIZE                 2 bytes
 
                           PURPOSE              Bottom address of RAM
@@ -3481,58 +3371,56 @@ v HOW TO USE 2ND ROM
 
                 7.2.1.11 MEMSIZ
 
-                          ADDRESS              "'XFA9A
+                          ADDRESS              ^XFA9A
                           SIZE                 2 bytes
 
                           PURPOSE              Highest location in Memory
 
-                                    This pointer points the top ~f the string
+                                    This pointer points the top of the string
                           space. The area between the MEMSIZ and FRETOP+l is
-                          ca 11 ed "used string space", and the area between the
+                          called "Used string space", and the area between the
                           FRETOP and STKTOP +1 is "Free string space".
 
                 7.2.1.12 FRETOP
 
-                          ADORESS             "'XFABF
+                          ADDRESS             ^XFABF
                           SIZE                2 bytes
 
                           PURPOSE             Top of the string free space
 
                                     The highest address (closer to ... XFFFF) of the
+                         string free area is kept in this pointer. The lowest
+                         address is kept by STKTOP + 1.
 
                                               - 92 -
-                                                                                                   - I
+                                             
 
     RAM ORGANIZATION
 
-                         string free area is kept in thi9 pointer. The lowest
-                         address is kept by STKTOP + 1.
 
                7.2.1.13 ASCTAB
 
-                         ADDRESS              ... XFAE1
+                         ADDRESS              ^XFAE1
                          SIZE                 2 bytes
 
                          PURPOSE              Pointer to start of ASCII files
 
                                    This pointer points the first byte of the
-                         first 00 <ASCII> file.
+                         first DO (ASCII) file.
 
               7.2.1.14 BINTAB
 
-                         ADDRESS             ... XFAE3
-                         SIZE
-                                             2 byte9
+                         ADDRESS             ^XFAE3
+                         SIZE                2 bytes
 
-                         PURPOSE             Pointer to 9tart of COMMAND file
+                         PURPOSE             Pointer to start of COMMAND file
 
                                   The lowest address of the first CO file is
-
                         kept here.
 
               7.2.1.15 VARTAB
 
-                        ADDRESS              ... XFAES
+                        ADDRESS              ^XFAE5
                         SIZE                 2 bytes
 
                         PURPOSE              Pointer to simple variable space.
@@ -3541,11 +3429,11 @@ v HOW TO USE 2ND ROM
                         VARIABLE TABLE area just above the CO files.
 
                                              - 93 -
-      RAM QR{;ANIZATION
+      RAM ORGANIZATION
 
-                7.2.1.16 ARYTA8
+                7.2.1.16 ARYTArB
 
-                          ADDRESS              "XFAE7
+                          ADDRESS              ^XFAE7
                           SIZE                 2 bytee
 
                            PURPOSE             Pointer to beginning of array table
@@ -3554,54 +3442,43 @@ v HOW TO USE 2ND ROM
                           VARIABLE TABLE. This points the beginning address of
                           this ARRAY TABLE.
 
-                7.2.1;17 STREND
+                7.2.1.17 STREND
 
-                          ADDRESS              "XFAE9
+                          ADDRESS              ^XFAE9
                           SIZE                 2 bytee
 
                           PURPOSE              End of storage in use
 
-                                    This pointer keepe just above the address of
-
-                          ARRAY .TABLE. The area between this pointer and the
-
+                                    This pointer keeps just above the address of
+                          ARRAY TABLE. The area between this pointer and the
                           stack pointer can be used as the FREE area.
 
                           Note:
 
-                          When you ~ill use this FREE area, you have to consider
+                          When you will use this FREE area, you have to consider
                           about the stack area. As the stack pointer points the
-                          current bottom of the stack area, you had better about
-
-                          120 bytes for the feature etack operation.
+                          current bottom of the stack area, you had better
+                          reserve about 120 bytes for the feature stack operation.
 
                 7.2.1.18 FILTAB
 
-                          ADDRESS             "XFB63
+                          ADDRESS             ^XFB63
                           SIZE                2 bytes
 
                           PURPOSE             Point to address of file data
 
                                     This points to the starting address of the
+                          file data area. The file data area consists of the
+                          FCB address. If MAXFILES command in BASIC was not
+                          executed after 'COLD START", this table has 4 bytes.
+                          The first 2 bytes points the NULL files buffer.
+                          (NULBUF points the same address.) The second 2 bytes
+                          points the #1 file's FCB address. Refer to the
+                          following section about FCB.
 
                                               - 94 -
 
-                               /
      RAM ORGANIZATION
-
-                          file   data    area.     The   file  data  area   consists    of the
-                                               1           1
-                          FCB address. If MAXFILES command in BASIC was not
-
-                          executed after 'COLO START", this table has 4 bytes.
-
-                          The first 2 bytes points the NULL files buffer.
-
-                          CNULBUF points the same address.) The second 2 bytes
-
-                          points the #1 file's FCB address. Refer to the
-
-                          following section about FCB.
 
                7.2.1.19 NULBUF
 
@@ -3610,211 +3487,174 @@ v HOW TO USE 2ND ROM
 
                          PURPOSE              Points to address of file #0 buffer
 
-                                   The buffer for file #0 , sometimes called
-                         NULBUF, is allocated just above the file data table,
-                         pointed by FILTAB.
+                                   The FCB (File Control Block) buffer for file #0,
+                         sometimes called NULBUF, is allocated just above the file
+                         data table, pointed by FILTAB.
 
                                              - 95 -
       RAM ORGANIZATION
 
-                          ^XFFFF    -----------------I
-                                                         I
+                          ^XFFFF    -----------------
+                                    |               |
+                                    |  Bookkeeping  |
+                                    |               |<--- ^XF380
+                                    -----------------
+                                    |               |
+                                    | User's machine|
+                                    |  area         |
+                                    |    or         |
+                                    | Device code   |<-- HIMEM
+                                    -----------------
+                                    |               |
+                                    |               |
+                                    | FCB           |
+                                    |  (#1 -- #n    |
+                                    |               | <-- Address is
+                                    -----------------      stored in FILTAB
+                                    |               |
+                                    | Nul buffer    |
+                                    | (File #0)     |
+                                    -----------------
+                                    |               |
+                                    | FCB address   |
+                                    |               |<-- FILTAB
+                                    -----------------
+                                    | (2 Bytes)     |
+                                    -----------------
+                                    | Used          |<-- MEMSIZ
+                                    | String area   |
+                                    |               |
+                                    -----------------
+                                    | Free          |<-- FRETOP
+                                    |  String area  |
+                                    |               |
+                                    -----------------
+                                    |               |<-- STKTOP
+                                    | Stack area    |
+                                    |               |<- Stack Pointer
+                                    -----------------
+                                    |               |
+                                    | Free area     |
+                                    |               |<-- STREND
+                                    -----------------
+                                    |               |
+                                    | Array data    |
+                                    |               |<-- ARYTAB
+                                    -----------------
+                                    | Simple        |
+                                    |  Variables    |
+                                    |               |<-- VARTAB
+                                    -----------------
+                                    |               |
+                                    | CO files      |
+                                    |               |<-- BINTAB
+                                    -----------------
+                                    |               |
+                                    | DO files      |
+                                    |               |<-- ASCTAB
+                                    -----------------
+                                    |               |
+                                    | BA files      |
+                                    |               |<-- TXTTAB
+                                    |               |
+                                    |               |<-- BOTTOM
+                                    -----------------
 
-                                        Bookkeeping      I
-                                                         I
-                                                         :<--- ^XF380
-                                    ----------------- -
+                          Fig 7.8 Pointers and ROM configuration
 
-                                       User's machine
+                                              - 96 -
 
-                                        area              <-- HIMEM
-                                            or
+
 
-                                       Device code
-
-                                       FCB               l·
-
-                                        C#1 -- #n)       I
-                                                         I
-
-                                                         : <-:-- Address is
-
-                                                                 stored in FILTAB
-
-                                       Nul buffer        I
-                                       <Fi 1e #0 >       I
-
-                                                         :<-- NULBUF
-
-                                    I                    I
-                                    I                    I
-
-                                    : FCB address        :<-- FILTAB
-
-                                      ( 2 Bytes)
-
-                                    --U-s-e-d----------:<-- MEMSIZ
-                                      String area
-
-                                    --F-r~ee-----------:<-- FRETOP
-                                       String area
-                                                         I
-                                                       · I
-
-                                    I                    :<-- STKTOP
-                                    I
-                                                         I
-                                    : Stack area         I
-
-                                    I                    :<- Stack Pointer
-                                    I
-
-                                        Free area        I
-                                                         I
-
-                                                         I
-                                                         I
-
-                                                         :<-- STRENO
-
-                                    I                    :<-- ARYTAB
-                                    I
-
-                                    : Array data
-
-                                              - 96
-
-                                                    /
-                          .I
-                          I
-
-                          : Simple            I
-                                              I
-
-                          l Variables·,       I
-                                              I
-                                              l <-- VARTAB.
-                          I
-
-                          -----------------
-
-                          : CO fi 1es         I
-                                              I
-                                              l <-- BINTAB
-                          ,-----------------
-
-                          l DO fi 1es         I
-                                              I
-
-                                              l <-- ASCTAB
-
-                            BA files          I     TXTTAB
-                                              I     BOTTOM
-                          .I                  I
-                                              I
-                          '
-                                              l<--
-
-                                              I
-                                              I
-
-                                              :<--
-
-                          tig 7.8 Pointers and ROM configuration
 
                                              - 97 -
       RAM ORGANIZATION
 
-                 7.2.2    Part II < VRAM Area For LCD)
+                 7.2.2    Part II (VRAM Area For LCD)
                   ·
-                           ADDRESS
+                           ADDRESS       ^XFBC0
 
-                           SIZE                 640 by~es
+                           SIZE           640 bytes
 
-                           PURPOSE              VRAM
+                           PURPOSE        VRAM
 
                                      This area is used for the VRAM of LCD (liquid
-                           Quristal Display). In this area, the data is stored
-
-                           as the character code. C ANSI character code. Refer
-
+                           Crystal Display). In this area, the data is stored
+                           as the character code. ( ANSI character code. Refer
                            to "APPENDIX A4" in PC-8201A Reference Manual.> The
                            LCD driver, installed just below the LCD panel, gets
                            this character code and displays it on the LCD. The
-                           320 characters C 40 by 8) can be shown on the LCD
+                           320 characters ( 40 by 8) can be shown on the LCD
                            panel at a time. So only second 320 bytes, from
                            ^XFD00 to ^XFE3F, are used for VRAM. The first 320
                            bytes, from ^XFBD0 to ^XFCFF, are used only when TERM
-
-                           mode is selected in TELCOM. (You can find "PREv" at
+                           mode is selected in TELCOM. (You can find "PREV" at
                            the bottom of the screen in TERM mode. The "PREV"
-
                            shows you the previous screen in TERM mode. Refer to
-                           "chapter 8 TELCOM" in PC-8201 User's Guide. The
+                           "Chapter 8 TELCOM" in PC-8201 User's Guide. The
                            "PREVIOUS" is the first TERM SUBCOMMANDS.>
 
-                                     The data in VRAM appears when LCD· driver is
+                                     The data in VRAM appears when LCD driver is
                            turned on. Refer to Chapter 9 about the control
-                           sequence for LCD management.·
+                           sequence for LCD management.
 
                 7.2.3 Part III ( Bookkeeping Area For BIOS)
 
-                          ADDRESS
+                          ADDRESS     ^XFE40 --- ^XFFFF
 
-                          driver,    This area includes the data area for RS-232C
-                          working     the buffers relevant to Key Board driver and
-                          to know
-                          in this    area for LCD driver. Refer to Chapter 9 - 15
-                                     how to use the peripheral drivers and the data
-
-                                     area.
+                                  This area includes the data area for RS-232C
+                          driver, the buffers relevant to keyboard driver and
+                          working area for LCD driver. Refer to Chapter 9 - 15
+                          to how to use the peripheral drivers and the data
+                          in this area.
 
                                                - 98 -
                RAM ORGANIZATION
 
-                         7.2.4 FQ Control Block)
+                       7.2.4 FCB: (File Control Block)
 
-                                   YJ the FILTAB points the lowest address of the
-                        file con~ata area. It doe~ NOT mean FCB. The FILTAB
-                        points tht of the starting address of the FCBs, FCB
-                        Offset, ifile is opened.
+                                  Y[garbled] the FILTAB points the lowest address of the
+                       file con[garbled]data area. It does NOT mean FCB. The FILTAB
+                       points th[garbled]e of the starting address of the FCBs, FCB
+                       Offset, i[garbled]file is opened.
 
-                                  e~B and FCB
+                       e[garbled]AB and FCB
 
-                                  Dnory (in hexadecimal)
+                       F[garbled](^XFB63) ------> ^XF16A
 
-                                  F: 6E F1 77 F2 ·· · · · · · ·
+                       D[garbled]ory (in hexadecimal)
 
-                                  Tht 2 bytes (^XF16E) points the starting address
-                                  o1 FCB of #0 file (NULL buffer). The second 2
-                                  b)'XF277) is the top address of the FCB for the
-                                  fi. These starting addresses are called FCBOFF
-                                  CFset address).
+                       F[garbled]6E F1 77 F2 .. .. .. ..
+                       
+                       T[garb;ed] 2 bytes (^XF16E) points the starting address
+                       o[garbled] FB of #0 file (NULL buffer). The second 2
+                       b[garbled]^XF277) is the top of the FCB for the
+                       f[garbled]. These starting addresses are called FCBOFF
+                       ([garbled]set address).
 
-                                  T~area for NUL and file #1 are allocated by the
-                        INITIALIZ~ine in ROM #0. The 2nd and more FCB area will
-                        be allocatthe BASIC language, MAXFILES command. Refer
-                        to PC-820»rence manual.
+                       T[garbled]area for NUL and file #1 are allocated by the
+                       INITIALIZE[garbled]routine in ROM #0. The 2nd and more FCB area will
+                       be alloct[garbled]the BASIC language, MAXFILES command. Refer
+                       to PC-8201[garbled]reference manual.
 
-                       The FCB ca of 9 ~ytes parameter area and 256 bytes
-                       buffer ancept for NULBUF. NULBUF consists of only 256
-                       bytes bufna. The purpose and the size of the parameters
-                       ar· listew. Since this FCB can support the Floppy Disk
-                       file, you =ind some meaningless parameters for RAM files.
-                       Of cause, 1n use them for own your purpose if you wish.
+                       The FCB consists of 9 bytes parameter area and 256 bytes
+                       buffer an[garbled]cept for NULBUF. NULBUF consists of only 256
+                       bytes buff[garbled]a. The purpose and the size of the parameters
+                       are listed below. Since this FCB can support the Floppy Disk
+                       file, you find some meaningless parameters for  RAM files.
+                       Of course, you can use them for your own purpose if you wish.
 
-                       (1) FL.MOO
+                       (1) FL.MOD
 
                        Address:     FCBOFF+0
                        Size:        1 byte
 
                                     The file mode of the FCB. If this byte is not
-                                 se~is FCB is not used in BASIC. If you obey the
+                                 se[garbled]is FCB is not used in BASIC. If you obey the
+                                 BA[garbled]rule, you have to set non zero value here when
+                                 yo[garbled] that file.
 
-                                 BA.rule, you have to set non zero value here when
-                                 yo~ that fi 1e.
-
-                                1 INPUT on 1y
+                                1 INPUT only
                                 2 OUTPUT only
                                 8 APPEND only
 
@@ -3826,19 +3666,19 @@ v HOW TO USE 2ND ROM
                 ADDRESS:            FCSOFF + 1
                 SIZE:               1 byte
 
-                          The· first cluster allocated to file. In RAM file
+                          The first cluster allocated to file. In RAM file
                           handling, this parameter has no meaning.
 
-                C3) FL.LCA
+                (3) FL.LCA
 
                 ADDRESS:            FCBOFF + 2
                 SIZE:               1 byte
 
                           The last cluster accessed. For RAM file open, this
                           and next byte is used for the storage of the Directory
-                          address of·that RAM file.
+                          address of that RAM file.
 
-                <4> FL.LSA
+                (4) FL.LSA
 
                 ADDRESS             FCBOFF + 3
                 SIZE                1 byte
@@ -3847,29 +3687,30 @@ v HOW TO USE 2ND ROM
                           previous byte is used for the storage of the Directory
                           address of that RAM file.
 
-                CS) FL.OSK
+                (5) FL.DSK
 
                ADDRESS:             FCBOFF + 4
                SIZE                 1 byte
 
-                          Disk* of the file or Device IO. The table                     listed
-                          below is the Device IO table in PC-8201A.
+                          Disk # of the file or Device ID. The table listed
+                          below is the Device ID table in PC-8201A.
 
-                         Device   name        IO number
-                         LCD                  ""XFF
-                         C CRT                ""XFE )
-                         CAS                  ""XFD
-                         COM                  ""XFC
-                         < WANO               ""XFB )
-                         LPT                  ""XFA
-                         RAM                  ""XF9
+                          Device name     ID number
+                          LCD             ^XFF
+                          ( CRT           ^XFE )
+                          CAS             ^XFD
+                          COM             ^XFC
+                          ( WAND          ^XFB )
+                          LPT             ^XFA
+                          RAM             ^XF9
 
                          CRT and WANO is option I/O.
 
-               C6> FL.SLB
 
                                             - 100 -
      RAM ORGANIZATION
+
+                (6) FL.SLB
 
                 ADDRESS:            FCBOFF + 5
                 SIZE:               1 byte
@@ -3886,20 +3727,20 @@ v HOW TO USE 2ND ROM
                 SIZE:               1 byte
 
                           The position in buffer for both PRINT and INPUT with
-
-                          FCB. the file *· One of the most important parameter in
+                          the file #. One of the most important parameter in
+                          FCB.
 
                 (8) FL.FLG
 
-               ADDRESS:             FCBOFF + 7
-               SIZE
+                ADDRESS:             FCBOFF + 7
+                SIZE
 
                           This byte and next byte are used for the offset
                           address of the RAM file which is opened now. For
                           example, in the "INPUT" mode file, this offset address
                           is advanced by 256 bytes when the block-read command
                           reads 256 bytes from the file into the buffer in FCB.
-                          So in reading or writing to the RAM file (00 file),
+                          So in reading or writing to the RAM file (DO file),
                           the starting address and this offset show the next
                           byte should be read or written.
 
@@ -3908,64 +3749,45 @@ v HOW TO USE 2ND ROM
                ADDRESS:             FCBOFF + 8
                SIZE:                1 byte
 
-                         High byte of the offset address for RAM              file.     Refer
-                         to FL.FLG.
+                          High byte of the offset address for RAM file. Refer
+                          to FL.FLG.
 
-               C10>FL.BUF
+               (10) FL.BUF
 
                ADDRESS:             FCBOFF + 9
-                                     256 bytes
-               S~ZE:
+               SIZE:                256 bytes
 
                          Buffer for the file.
 
                                             - 101 -
-                                            CHAPTER 8
+
+
+                                           CHAPTER 8
+
                                        RAM FILE HANDLING
 
-                          In this chapter, the technic to manage the RAM file is
-
+                          In this chapter, the technique to manage the RAM file is
                described. The main purpose is to create or delete a RAM file
-
                for the applications stored RAM area or 2nd ROM. As described
-
                before, if there is some violation in standard rules of RAM
-
                file handling, the file you made (or sometimes all files in
-
                the RAM) will be lost by the standard manipulation. (The
-
                "standard manipulation" means the file handling or operation
-
                with Menu, BASIC, TEXT or TELCOM in the ROM #0.)
-
                           There are many useful routines to make up these
-
                violation in standard rules in ROM #0. But using ROM #0 from
-
                ROM #1 will reduce the speed of the application. If you want
-
-               to   handle   the   RAM  file  without    ROM  #0,  please    make  sure   'Wha1t
-                                                                               1
-               you should do· in this chapter. And refer to Bookkeeping
-
-               and "oirectory structure".
+               to handle the RAM file without ROM #0, please make sure "What
+               you should do" in this chapter. And refer to "Bookkeeping"
+               and "Directory structure".
 
                          NOTE: The another technical manual for PC-8201A has
-
                          been available already. There are many information
-
                          about the RAM file handling routines in ROM #0 in it.
-
-                         For example,        "oPEN    RAM    FILES",     'KILL  ASCII   FILE",
-
-                                                                        1
-                          'READ A CHARACTER FROM A RAM FILE and 'CLOSE ALL
-
-                         FILES".        If you will use your application or
-
+                         For example, "OPEN RAM FILES", "KILL ASCII FILE",
+                         "READ A CHARACTER FROM A RAM FILE" and "CLOSE ALL
+                         FILES". If you will use your application or
                          subroutine with ROM #0, you had better refer to that
-
                          manual.
 
                                              - 102 -
@@ -3975,7 +3797,7 @@ v HOW TO USE 2ND ROM
 
                           In the "Directory structure" and "Bookkeeping area",
                 many rules about the RAM file handling are described. I do
-                explain again about the important r~les.
+                explain again about the important rules.
 
                 1. Make sure that there is enough free area
 
@@ -3985,19 +3807,18 @@ v HOW TO USE 2ND ROM
                   area requested in OPEN is sometimes ignored. At least, one
                   byte is necessary for OPEN a DO file. 3 bytes for CO file.
                   Refer to 'What is RAM file" and following sections.
-
                           You can find where the free space is in the figure in
                   "Bookkeeping are". The difference between the pointer
-                  "sTREND" and the value in the stack pointer indicates the
+                  "STREND" and the value in the stack pointer indicates the
                   free size. But don't forget that some area will be used for
                   the stack operation in that free area. For instance, the
                   make-room routine used in BASIC and TEXT recognizes that the
                   current free space is less 120 bytes than that difference.
                   In other words, 120 bytes is always maintained for the 60
                   stack area when new data is stored. Refer to "MAKHOL" 1n
-                 . "useful Routine For RAM File Handling In ROM #0".
+                  "Useful Routine For RAM File Handling In ROM #0".
 
-          2. ·Register file name correctly
+          2. Register file name correctly
 
                           The contents of the directory is described in
                   "oirectory construction". No one forgets to register the
@@ -4008,7 +3829,7 @@ v HOW TO USE 2ND ROM
                   starting address in the address field, the link of the
                   directory and the files will be lost. By the result, you
                   cannot select a file properly in the Menu mode or PC-8201A
-                  is hung up. Any way, the directory flag and address field
+                  is hung up. Anyway, the directory flag and address field
                   have very important meaning. Please refer to the "Directory
                   construction" and following sections.
 
@@ -4020,7 +3841,7 @@ v HOW TO USE 2ND ROM
                                             - 103 -
       RAM FILE HANDLING
 
-                  new file. For a new DO file~ we-have to set ASCTAB -1 as
+                  new file. For a new DO file we have to set ASCTAB -1 as
                   the starting address of that new file at the directory area.
                   And for a new BA file, you have to register the ASCTAB -1 in
                   the "non-registered" file's directory area and insert double
@@ -4028,7 +3849,7 @@ v HOW TO USE 2ND ROM
                   -1 and will have the starting address, ASCTAB - 2. In
                   making both of a new DO file and a new BA file, LNKFIL
                   should be executed before end of its process ·. Refer to
-                  "useful Routines for RAM file handling in ROM 10" to
+                  "useful Routines for RAM file handling in ROM #0" to
                   understand what is LNKFIL.
 
           4. Make and shrink a hole safely
@@ -4036,33 +3857,33 @@ v HOW TO USE 2ND ROM
                           The calculation of the free space is very important.
                   And you have to maintain the stack area when you make a your
                   room. And one more important thing is the management of the
-                  pointers. Tne reason why many programs, Menu, BASIC, TEXT
+                  pointers. The reason why many programs, Menu, BASIC, TEXT
                   and so on, can use the same RAM area safely is that they
                   adjust the pointers for RAM every time when they change the
-                  RAM configuration. For example~ BASIC deletes ~ BASIC
-                  program file, he changes many pointers, STRENO, ARYTAB,
+                  RAM configuration. For example, BASIC deletes a BASIC
+                  program file, he changes many pointers, STREND, ARYTAB,
                   VARTAB, BINTAB and ASCTAB. And he turns off the directory
                   flag in order to indicate that the slot in the directory is
-                  not used now. Refer to MAKNOL and MASOEL in "useful"
-                  Routines for RAM file handling in ROM 10."
+                  not used now. Refer to MAKNOL and MASDEL in "Useful"
+                  Routines for RAM file handling in ROM #0."
 
           S. Insert the promissory byte in the file
 
                          When you open a DO file, you have to enter one byte
-                  data at least. The data is Control-Z C~X1A), it shows the
-                  end of file in RAM. Some~imes this promissory byte is
+                  data at least. The data is Control-Z (^X1A), it shows the
+                  end of file in RAM. Sometimes this promissory byte is
                   forgotten. So the routine which makes up the starting
                   address in the directory area is confused. Simultaneously
                   BASIC needs 2 NULL bytes at the end of the file. Otherwise
                   CO file requires the 6 bytes file header at the top of the
-                  file. Refer to "what is RAM file".
+                  file. Refer to "What is RAM file".
 
           6. Make up the starting address in the directory
 
                          When you changes the RAM configuration, you have to
-                  care not only the pointers but also the starting address ~n
+                  care not only the pointers but also the starting address in
                   the directory area. It is easy to image that the starting
-                  address in the address field of all the 00 files should be
+                  address in the address field of all the DO files should be
 
                                             - 104 -
      RAM FILE HANDLING
@@ -4070,44 +3891,37 @@ v HOW TO USE 2ND ROM
                                                                    .
 
                   changed when you make a new BASIC file. (BASIC file 1s
-
                   created under the lowest DO file. Refer to "Memory Map
-
                   about RAM files" ) And when some data are inserted in
-
                   "A.DO", a DO file, the starting address of the DO file and
-
                   CO file located above "A.DO" should be changed. Refer to
-
                   "LNKFIL" in the "Useful Routines For RAM file Handfing in
-
-                  ROM #0". You can get the know-how to make up- the starting
-
+                  ROM #0". You can get the know-how to make up the starting
                   address in the directory area.                                     ·
 
-          7. Bad data in 00 file
+          7. Bad data in DO file
 
                          You cannot store the data which include the character
-                 whose code is 0, Axe and AX1A. The "0" is used "NULL" to
+                 whose code is 0, ^X8 and ^X1A. The "0" is used "NULL" to
                  indicate the hole which is not used. Or double NULL means
-                 the end of the BA file. The "Axe" is used "Back space".
-                 The "A1A" is regarded as the end of the 00 file, as you
+                 the end of the BA file. The "^X8" is used "Back space".
+                 The "^1A" is regarded as the end of the 00 file, as you
                  know. Refer to "DO file".
 
                                             - 105 -
        RAM FILE HANDLING
 
-                 8.2 HOU TO MAKE NEU FILE
+                 8.2 HOW TO MAKE NEW FILE
 
                  8.2.1 How To Register The New File Name
 
                            At the first, the new file name should be registered
                  in the user's directory area when you create a new file. The
-                 user's·directory area is started from USRDIR. And the next
+                 user's directory area is started from USRDIR. And the next
                  byte of the user's directory area, the end of the directory
-                 area, has AXFF ( 255 in decimal). This byte is called
+                 area, has ^XFF ( 255 in decimal). This byte is called
                  "Directory Stopper". The used slot starts with the number
-                 larger than AX80 as the directory flag. Therefore it is easy
+                 larger than ^X80 as the directory flag. Therefore it is easy
                  to find the free slot. Refer to the sample program shown
                  later.
 
@@ -4115,7 +3929,7 @@ v HOW TO USE 2ND ROM
                 name which is existed already. Two files which have same file
                 name sometimes occur a serious problem. So during searching
                 the free slot, the existed file name should.be checked. And
-                 if there is a same file name, you had better delete it before
+                if there is a same file name, you had better delete it before
                 making new file or abandon to make a new file. ·
 
                            If you succeed to find a free slot in the user's
@@ -4123,14 +3937,12 @@ v HOW TO USE 2ND ROM
                 address of the file and the file name. In this time, you have
                 already known the file name. And you can set the directory
                 flag now. (You can get the detail information about the
-                Directory flag in the section, DIRECTORY STRUCTURE.> The
+                Directory flag in the section, DIRECTORY STRUCTURE.) The
                 address of the file will be fixed later. Because the way to
                 get the address for the new file is depend on the file type,
-
-                00 file, BA file and CO file. Any way, don't forget to set up
-
-                the directory flag when you register the new file.name.
-                Otherwise someone, Menu, BASIC or TEXT and so on~ will destroy
+                DO file, BA file and CO file. Anyway, don't forget to set up
+                the directory flag when you register the new file name.
+                Otherwise someone, Menu, BASIC or TEXT and so on, will destroy
                 your new file without any caution.
 
                 Refer to "Directory construction".
@@ -4139,7 +3951,7 @@ v HOW TO USE 2ND ROM
 
                            If you have already registered the file name and
                 directory flag at the slot in the directory area, now the only
-                one information lacking in the new directory area 1s the
+                one information lacking in the new directory area is the
                 address of the new DO file. If you didn't read "Hou to
                 Register The New File Name" and you have not set the file name
 
@@ -4148,65 +3960,52 @@ v HOW TO USE 2ND ROM
 
 l     RAM FILE HANDLING
 
-                and directory                             ........
+                and directory flag yet, please read that section and make up
                 them first.
-                                     flag yet, please read that section and make up
 
                            Usually the new DO file is created just above the
-                ASCTAB, the lowest address of the-:existed DO files. Refer to
-                the figure in the "what is RAM file" to make sure your image.
-
+                ASCTAB, the lowest address of the existing DO files. Refer to
+                the figure in the "What is RAM file" to make sure your image.
                 If you go with the standard rule which Menu, BASIC and others
                 in ROM #0 is used, you can copy the contents of the ASCTAB-1
                 as the starting address of the new files. Then the
                 registration of the new DO file is done completely. The
-
                 reason why we have to use ASCTAB-1 instead of ASCTAB is to
                 maintain the order of the files. The LNKFIL, to make up
                 starting address in directory area, searches the file name
-
                 from top to end and links the starting address of each file.
-
                 For LNKFIL searches the directory from younger address to
                 older address and older file has younger address, the order of
-
                 the DO file will be swapped if you use ASCTAB instead of
-                ASCTAB-1. Refer to "LNKFIL" in "useful Routine for RAM file
+                ASCTAB-1. Refer to "LNKFIL" in "Useful Routine for RAM file
                 handling in ROM #0".
 
                           But you have to do two more steps for that new DO
                 file. One is to insert the end of file flag at the bottom of
-                that new DO file. Another one is, as you know, to make up the
+                that new DO file. Another one is, as you know, to adjust the
                 starting address of other files in the directory area.
 
                           There is no DO file whose size is zero, because the
-                final character of the DO fiie should be AZ (AX1A, 26 in
-                Decimal). In other words, the AZ indicates the End of File of
-
+                final character of the DO fiie should be ^Z (^X1A, 26 in
+                Decimal). In other words, the ^Z indicates the End of File of
                 the DO file. So the DO file will spend one byte at least. If
                 you only want to open the new DO file without any data, you
-                have to insert a AZ at the starting address. If you want to
-                save some data now, you have to append a AZ at the end of the
-                data. Never forget to insert a AZ at the end of the file.
-
+                have to insert a ^Z at the starting address. If you want to
+                save some data now, you have to append a ^Z at the end of the
+                data. Never forget to insert a ^Z at the end of the file.
                 Otherwise, next RAM file operation might destroy the all RAM
                 files.
 
                           In order to make a room for the new file, a convenient
-
                 routine is in the ROM #0. Its name is MAKHOL, MAKe HOLe.
-
                 This routine makes a hole from the specified point and whose
-                size can be decided by the contents in CBCJ register. Refer
-
-                to "MAKHOL" in "useful Routine For RAM file handling in ROM
-
+                size can be decided by the contents in [BC] register. Refer
+                to "MAKHOL" in "Useful Routine For RAM file handling in ROM
                 #0". The concept of the MAKHOL is shown briefly in that
                 section.
 
                           If there is no free area in RAM, and you cannot insert
-                a AZ, you cannot continue to enter data to the file. And, of
-
+                a ^Z, you cannot continue to enter data to the file. And, of
                 course, you have to clear the directory flag for next user.
 
                           To make up the starting address in the directory area,
@@ -4214,16 +4013,14 @@ l     RAM FILE HANDLING
 
                                              - 107 -
      RAM FILE HANDLING
-                                                         ........
 
-               of that routine is shown in the "useful Routine For RAM file
+               of that routine is shown in the "Useful Routine For RAM file
                handling in ROM #0". You can get information to make your own
                LNKFIL routine in it, too.
 
-                         If you succeed to insert 6 AZ and to make up the
-
-               etarting address field in the directory, the opening a new 00
-               file ha~ been done successfully. You can save the data to the
+                         If you succeed to insert a ^Z and to make up the
+               starting address field in the directory, the opening a new DO
+               file has been done successfully. You can save the data to the
                new file with using MAKHOL and LNKFIL. Refer to another
                section to know how to Append, Insert, and Delete data. The
                sample program in the following section will show you how to
@@ -4232,38 +4029,37 @@ l     RAM FILE HANDLING
                          Cf. How to make a new DO file
 
                          1. Find a free slot in the user's directory. If you
-                              cannot find a free slot in the directory area, you
-                              have to give up to make a new DO file. Or if you
-                              find the same name in the directory, delete that
-                              file or abandon to continue.
+                            cannot find a free slot in the directory area, you
+                            have to give up to make a new DO file. Or if you
+                            find the same name in the directory, delete that
+                            file or abandon to continue.
 
-                         2. Register the file name and directory· flag at the
-                              free slot.
+                         2. Register the file name and directory flag at the
+                            free slot.
 
-                         3. Get the ASCTAB-1 and·save it in the address field
-                              of the elot.
+                         3. Get the ASCTAB-1 and save it in the address field
+                            of the slot.
 
                          4. Try to make a one byte hole at the address where
-                              ASCTAB pointed.
+                            ASCTAB pointed.
 
                          5. If you fail to make a hole, clear the directory
-                              flag which you registered at (2).
+                            flag which you registered at (2).
 
-                         6. If you succeed to make a hole, insert a AZ at that
-
-                              point.
+                         6. If you succeed to make a hole, insert a ^Z at that
+                            point.
 
                          7. Make up the pointers and starting address in the
-                              directory area.
+                            directory area.
 
-                         8. Tha~'s all. The new 00 file has been created
-                              without fail.
+                         8. That's all. The new DO file has been created
+                            without fail.
 
                          NOTE: If you make a hole by your own routine, please
-                        make sure that the your own routine refines the
+                         make sure that the your own routine refines the
                          pointers. Refer to the explanation about the MAKHOL.
-                        And refer to "LNKFIL" to know how to make up the
-                        address in Directory.
+                         And refer to "LNKFIL" to know how to make up the
+                         address in Directory.
 
                                            - 108. -
 f     RAM FILE HANDLING
@@ -4273,24 +4069,22 @@ l     RAM FILE HANDLING
                           There is few difference between how to make DO file
                 and How to make BASIC file. There is no difference in the
                 registration of the file name and the directory flag. The
-                first· difference is that you have to end the BASIC file with
-
-                double NULLs (0) instead of AZ in DO files. In order to
-
-                understand what double NULLs means, you·have to familiar with
+                first difference is that you have to end the BASIC file with
+                double NULLs (0) instead of ^Z in DO files. In order to
+                understand what double NULLs means, you have to familiar with
                 the function of the LINK POINTER in the Microsoft BASIC. The
-                inner specification of the Microsoft BASIC file 1s too
+                inner specification of the Microsoft BASIC file is too
                 difficult to described here briefly. You can get some good
                 texts to learn the information about the BASIC programs and
                 their data constructions at the book store or the computer
-                shop. But the ba$ic concept about RAM file handling is
+                shop. But the basic concept about RAM file handling is
                 exactly same as DO file. ( Register the file name and another
                 information at the directory and make a room for the program.)
 
                           The second difference is the new BA file is created
                 just above the BA files which has already stored. In other
-                words, the new BA file is inserted just below the lowest 00
-                file. Refer to the section, "wHAT IS RAM FILE?",
+                words, the new BA file is inserted just below the lowest DO
+                file. Refer to the section, "WHAT IS RAM FILE?".
 
                           I believe that the person who wants to handle the BA
                 files, is an expert about the BASIC program and BASIC
@@ -4301,65 +4095,60 @@ l     RAM FILE HANDLING
                           ex. How to create a new BA file in PC-8201A
 
                           1. Search a free slot in the user's directory area.
-                               If you find a same name in the directory area,
-                               delete the file or abandon to continue.
+                             If you find a same name in the directory area,
+                             delete the file or abandon to continue.
 
-                          2. Set.up the directory flag and copy the file name··
-                               into the directory,
+                          2. Set up the directory flag and copy the file name
+                              into the directory.
 
-                          3. Copy ASCTAB -1 into NULDIR, non-register program's
-                               directory area. And make 2 bytes hole and store
-                               the double NULL for non-register program.
+                          3. Copy ASCTAB-1 into NULDIR, non-registered program's
+                             directory area. And make 2 byte hole and store
+                             the double NULL for non-registered program.
 
                           4. Make a hole as large as possible at the ASCTAB-1.
 
             ..            5. The size of that hole is too small for the new BA
-
-                               file, clear that directory flag written in (2).
+                             file, clear that directory flag written in (2).
 
                                              - 109 -
       RAM FILE HANDLING
 
-                          6.   If you succeed to make a big hole for your BA
-                        . 7.   file, copy the BASIC program into the hole. Don't
-                               forget to insert the double NULLs at the end of
-                          8.   the program ·
-                          9.
-                               Register the starting address at the starting
-                        10.    addres~ area in the directory area. Usually-, the
-                               address that is one byte less than the starting
-                               address of the non-registered program is used.
+                          6.  If you succeed to make a big hole for your BA
+                              file, copy the BASIC program into the hole. Don't
+                              forget to insert the double NULLs at the end of
+                              the program ·
+                          
+                          7.  Register the starting address at the starting
+                              address area in the directory area. Usually, the
+                              address that is one byte less than the starting
+                              address of the non-registered program is used.
 
-                               Squeeze the hole, when you made a too large hole.
+                          8.  Shrink the hole, when you made a too large hole.
 
-                               Adjust the pointers, ASCTAB, SINTAB, VARTAB,
-                               ARYTAB and STREND. Make up the starting address
-                               of other files in the directory area. All DO
-                               files' and CO files' starting address in the
-                               directory field should be changed. Refer to
-                               LNKFIL.
+                          9.  Adjust the pointers, ASCTAB, BINTAB, VARTAB,
+                              ARYTAB and STREND. Make up the starting address
+                              of other files in the directory area. All DO
+                              files' and CO files' starting address in the
+                              directory field should be changed. Refer to
+                              LNKFIL.
 
-                               End
+                          10. End
 
                                              - 110 -
      RAM FILE HANDLING
+
                8.2.4 How To Make A CO File
 
                          The CO file is the another type of the file which you
-               want to make _yourself beside the DO file. ·The difference
-
+               want to make yourself beside the DO file. The difference
                between DO file and CO file is the heading instruction of the
-
-               file. · The CO file needs the heading data instead of the End
-
-               of File character, AZ. So you have to make sure that there
-
+               file. The CO file needs the heading data instead of the End
+               of File character, ^Z. So you have to make sure that there
                are more than 6 bytes besides the size of your machine
-               language program in the free area. And if there is no enough
+               language program in the free area. And if there is not enough
                free area, you cannot continue to make a new CO file. If you
                have already set up the directory flag and file name, clear
                them soon. Don't leave the illegal flag and file name in the
-
                directory.
 
                          Heading of CO file
@@ -4372,16 +4161,18 @@ l     RAM FILE HANDLING
 
                          So the file length of CO file can be calculated by
                LENGTH + 6. In making CO file, don't forget to renew the
-
-               pointers, VARTAB ,ARYTAB and STREND.
+               pointers, VARTAB, ARYTAB and STREND.
 
                          The CO file is usually made just under the address
                pointed by VARTAB. So the starting address of the other files
                need not be changed after saving new CO file. But I recommend
-               to do LNKFIL after ~aving new CO file for safety.
+               to do LNKFIL after saving new CO file for safety.
 
-                         ex. BSAVE ·MAC.,50000,10,50000 in BASIC mode
-                         Dump the data in CO file is;
+                         ex. BSAVE "MAC",50000,10,50000 in BASIC mode
+
+                         Dump the data in CO file is:
+
+                              ^X50 ^XC3 ^X0A ^X00 ^X50 ^XC3 .. .. ..
 
                               ^XC350          (50000) Starting address
 
@@ -4395,32 +4186,32 @@ l     RAM FILE HANDLING
                           Cf. The flow of making a new CO file
 
                           1. Search the free slot in the directory area. If
-                               there is the same Tile name in the directory,
-                               delete that file or abandon to continue.
+                             there is the same file name in the directory,
+                             delete that file or abandon to continue.
 
                           2. Check the free area. Estimate the free size is
-                               greater than your CO file's length+ 6 bytes.
+                             greater than your CO file's length+ 6 bytes.
 
                           3. If there is no room, stop.making a new CO file.
 
                           4. Make a hole just under address pointed by VARTAB
-                               and store the data (or machine language program).
-                               Make sure that all pointers are proper. In this
-                               time, if you use MAKHOL to make a room, you have
-                               to adjust the pointer, BINTAB. Because MAKHOL
-                               changes BINTAB always.
+                             and store the data (or machine language program).
+                             Make sure that all pointers are proper. In this
+                             time, if you use MAKHOL to make a room, you have
+                             to adjust the pointer, BINTAB. Because MAKHOL
+                             changes BINTAB always.
 
                           S. Register the file name; directory flag and start
-                               address at the directory.
+                             address at the directory.
 
-                          6. Adjust VARTAB, ARYTAB and STRENO. Make up the
-                               starting address of a 11 other files in the
-                               directory for safety. If you use LNKFIL for-
-                               adjustment of the a 11 start addresses in
-                               directory, you have to care about the BINTAB as
-                               you do in MAKHOL.
+                          6. Adjust VARTAB, ARYTAB and STREND. Make up the
+                             starting address of all other files in the
+                             directory for safety. If you use LNKFIL for
+                             adjustment of the all start addresses in
+                             directory, you have to care about the BINTAB as
+                             you do in MAKHOL.
 
-                          7 · . That ' s a 11·
+                          7. That's all
 
                                             - 112 -
       RAM FILE HANDLING
@@ -4428,30 +4219,30 @@ l     RAM FILE HANDLING
                 8.3 HOW TO DELETE A FILE
 
                           You can guess how to delete a file from the RAM file
-               ·system in PC-8021 easily. The things that you have to do are
+                system in PC-8021 easily. The things that you have to do are
                 to clear the directory flag and to remove the data of the
                 file.
 
                           To delete a directory entry, you only turn off the
-                directory flag. If the. directory flag is less than AX80,
-                other programs regardes that slot is not used now.
+                directory flag. If the. directory flag is less than ^X80,
+                other programs regards that slot is not used now.
 
-                          And when you squeeze the body of the file, you have to
-               check the pointers and the start address of other files in the
-               directory. When you are using the subroutines in ROM #0,
+                          And when you shrink the body of a file, you have to
+                check the pointers and the start address of other files in the
+                directory. When you are using the subroutines in ROM #0,
                 these pointers are adjusted automatically. But if you do it
-               by your own routine, you have to care about the pointers. You
-               can find the good .clues in 'How to make new file", and
+                by your own routine, you have to care about the pointers. You
+                can find the good .clues in 'How to make new file", and
                 'MAKHOL' in 'Useful Routines for RAM file handling in ROM #0".
 
                           Whether you treat the pointers by your own routine or
-               utilize the MASOEL in ROM #0, you have to make up the starting
-               addresses of the another files. The LNKFIL will do it well.·
+               utilize the MASDEL in ROM #0, you have to make up the starting
+               addresses of the another files. The LNKFIL will do it well.
                Refer to the following section to know the ENTRY information
                about the LNKFIL. That section will give you a clue what
                LNKFIL should do when you will make a LNKFIL by yourself.
 
-               8.3.1 How To Delete A 00 File
+               8.3.1 How To Delete A DO File
 
                          At the first, search the file name which you want to
                delete in the file. If you don't remember the directory
@@ -4459,10 +4250,10 @@ l     RAM FILE HANDLING
                CONSTRUCTION", and make sure it. When you find the file name
                in the directory, check the directory flag of the file. The
                file which is opened in BASIC, cannot be deleted. If you do
-               it by force, the RAM file system might be crushed or the
+               it by force, the RAM file system might be corrupted or the
                system might be hung up.
 
-                         Cf. The flow of d~leting a DO file (Calling Machine
+                         Cf. The flow of deleting a DO file (Calling Machine
                          language program by USR function in BASIC.)
 
                          1. Search the file name in the directory
@@ -4475,60 +4266,55 @@ l     RAM FILE HANDLING
 
                           3. Get the starting address of the file
 
-                          4. Search AZ <End of File)
+                          4. Search ^Z (End of File)
 
                           5. Count the size of the file
 
                           6. Remove the data of the file and shrink. The ROM
-                               routine MASOEL will do it automatically. MASOEL
-                               changes the pointers, BINTAB, VARTAB, ARYTAB and
-                               STRENO automatically.
+                             routine MASDEL will do it automatically. MASDEL
+                             changes the pointers, BINTAB, VARTAB, ARYTAB and
+                             STREND automatically.
 
-                          7. Refine the starting address of other                       files.
-                               LNKFIL will help you.
+                          7. Refine the starting address of other files.
+                             LNKFIL will help you.
 
                           8. Clear the directory flag of the file which you
-                               deleted.
+                             deleted.
 
-                          9. That~s all
+                          9. That's all
 
                8.3.2 How To Delete A BA File
 
                          When you are not in BASIC program, there is few
-
-               differences between killing 00 file and killing BA file. The
-
-               differences are in searching the end of file. In 00 file, AZ
-
+               differences between killing DO file and killing BA file. The
+               differences are in searching the end of file. In DO file, ^Z
                (26 in decimal) indicates the End of file. But in BA file,
                there is no such a good terminater. The only one way to get
-               the end of the BA file is tracing the "1ink pointer" from the
-
+               the end of the BA file is tracing the "link pointer" from the
                beginning of the BA file to end. If you can utilize the ROM
-
-               #0, you may use the useful routines, CHEAO. The CHEAO
+               #0, you may use the useful routines, CHEAD. The CHEAD
                searches the end of the BA file. And MASDEL removes the data
                and refines the pointers. You have to care about the TXTTAB
                position. If you delete a BA file which is located under the
                file pointed by TXTTAB, you have to adjust the TXTTAB. This
                case is occurred when TXTTAB points the second BA file and you
-               delete the first BA fil&. Finally, you have to do make up the
-               all starting address Clink pointers) in directory area.
+               delete the first BA file. Finally, you have to do make up the
+               all starting address (link pointers) in directory area.
                LNKFIL will do it.
 
-                         NOTE: MASOEL does not change the ASCTAB. When a BA
-                         file is ·killed, ASCTAB should be changed. So after
+                         NOTE: MASDEL does not change the ASCTAB. When a BA
+                         file is killed, ASCTAB should be changed. So after
 
                                             - 114 -
       RAM FILE HANDLING
 
-                          calling MASOEL, you have to adjust the ASCTAB. Refer
+                          calling MASDEL, you have to adjust the ASCTAB. Refer
                           to the sample program in the following section. Also
                           "How to make a BA file" will give you a clue.
 
                           Another difference is that there is a limitation in
                 deleting a BA file when you are executing that BASIC program.
-                The following caution is ~vailable when you make a machine
+                The following caution is available when you make a machine
                 language subroutine for a program written in BASIC. If you
                 won't make a machine language subroutine which handles the
                 BASIC file, you may skip to read this caution.
@@ -4540,31 +4326,31 @@ l     RAM FILE HANDLING
                           afraid that this explanation will not make sense for
                           you. So I will show you the short sample.
 
-                                    In the BASIC mode, you can know ~here you are
+                                    In the BASIC mode, you can know where you are
                           in by "FILES" command. The file name with "*" is the
                           current file which you are treating. You don't kill
                           it.
 
                           1. Select BASIC mode in the menu
 
-                         2. Type a BASIC program.
-                                    10 PRINT "HELLO" .
+                          2. Type a BASIC program.
+                                 10 PRINT "HELLO" .
 
-                         3. Save it.
-                                    SAVE .TEsr"
+                          3. Save it.
+                                 SAVE "TEST"
 
-                         4. Load it again.
-                                    LOAD .TEsr"
+                          4. Load it again.
+                                 LOAD "TEST"
 
-                         5. Try to kill it
-                                    KILL "TEST.BA" (Return>
-                                    ?FC Error
-                                    Ok
+                          5. Try to kill it
+                                 KILL "TEST.BA" (Return)
+                                 ?FC Error
+                                 Ok
 
-                         6. This result show you what I want to say. SASIC's
-                              KILL command checks the current TXTTAB and avoid
-                              to kill himself. Your machine language routine
-                              should do same check before killing a BASIC file.
+                          6. This result show you what I want to say. BASIC's
+                               KILL command checks the current TXTTAB and avoid
+                               to kill himself. Your machine language routine
+                               should do same check before killing a BASIC file.
 
                                             - 115 -
       RAM FILE HANDLING
@@ -4573,149 +4359,143 @@ l     RAM FILE HANDLING
                           starting address of the BA file is available only when
                           you are executing the BASIC program or executing the
                           machine language subroutjne in BASIC mode. It is
-                          meaningless to care about- the TXTTAB and starting
+                          meaningless to care about the TXTTAB and starting
                           address when you are not in BASIC mode,
 
-                          Refer to "what is RAM file" and "aookkeeping area" to
+                          Refer to "What is RAM file" and "Bookkeeping area" to
                 understand the position of the BA files and TXTTAB.
 
                           Cf. The flow of the deleting the BA file
 
                           1. Search the file name in the directory
 
-                          2. Check the directory flag and if the file is not SA
-
-                               file, of course, you cannot delete it.
+                          2. Check the directory flag and if the file is not BA
+                             file, of course, you cannot delete it.
 
                           3. Get the starting address of the file in the
-                               directory
+                             directory
 
                           4. Compare that starting address to TXTTAB. If they
-                               are identical, you cannot delete it. If not, you
-                               have to remember which is larger, the starting
-                               address or TXTTAB.
+                             are identical, you cannot delete it. If not, you
+                             have to remember which is larger, the starting
+                             address or TXTTAB.
 
                           5. Search End of the File
-
-                               CHEAO will help you to find the end of file.
-                               Refer to "useful Routines for RAM file Handling in
-                               ROM #0".
+                             CHEAD will help you to find the end of file.
+                             Refer to "useful Routines for RAM file Handling in
+                             ROM #0".
 
                          6. Count the size of the file
 
                          7. Remove the data of the file and shrink.
-                               The ROM routine MASDEL will do it automatically.
-                               MASDEL changes the pointers, BINTAB, VARTAB,
-                               ARYTAB and STRENO. Refer to "what is RAM file"
-                               and "eookkeeping area". And MASDEL returns the
-                               negative length in BC register~ You can use it to
-                               adjust the ASCTAB.
+                            The ROM routine MASDEL will do it automatically.
+                            MASDEL changes the pointers, BINTAB, VARTAB,
+                            ARYTAB and STREND. Refer to "What is RAM file"
+                            and "Bookkeeping area". And MASDEL returns the
+                            negative length in BC register. You can use it to
+                            adjust the ASCTAB.
 
                          8. Adjust ASCTAB
 
                          9. Refine the starting address of other files.
-                              LNKFIL will help you. Refer to "Useful Routine
-                              For RAM file handling in ROM #0".
+                            LNKFIL will help you. Refer to "Useful Routine
+                            For RAM file handling in ROM #0".
 
-                                             ~ 116 -
-                              :Restore the result of the comparison between the
-                              :starting address of the file and TXTTAB. If
-                             · ;TXTTAB is greater than the starting addres, adjust
+                                           - 116 -
 
-                              . .: it. ..
+                       10. Restore the result of the comparison between the
+                             starting address of the file and TXTTAB. If
+                             TXTTAB is greater than the starting addres, adjust
+                             it.
 
-                               Clear the directory flag of the file which you
-                              !deleted.
-                              : That' e a 11
+                         11. Clear the directory flag of the file which you
+                             deleted.
+                            
+                         12. That's all
 
-                              To DELETE A CO File
+               8.3.3 How To DELETE A CO File
 
-                              · don't have to care about where you are in now like
-                                file or killing DO file. You may delete any CO
-
-                              nt to delete, even if you are executing that co
-
-                              , CO f i 1e· is 1oaded at the specified area when the
-
-                              6ked in menu mode or in BASIC mode. So the "co"
-                              delete the "co" file itself, and can save the free
+                     [garbled]don't have to care about where you are in now like
+                     [garbled]file or killing DO file. You may delete any CO
+                     [garbled]nt to delete, even if you are executing that CO
+                     [garbled]CO file is loaded at the specified area when the
+                     [garbled]oked in menu mode or in BASIC mode. So the "CO"
+                     [garbled]delete the "co" file itself, and can save the free
+                     [garbled]
 
                                                        '!
 
                                             - 117 -
      RAM FILE HANDLING                                    ..
 
-                         ex.    Delete a CO file it9elf
+                         ex.    Delete a CO file itself
 
                           1. Load a CO file in BASIC or MENU.
 
                                               ----------------- ^XFFFF
-
+                                              |               |
+                                              =================
+                                              |               |
                                               -----------------
-
-                                               I                    I
-                                               I                    I
-
-                                               : machine prog       :<--
-
-                                                                           BLOAO
-
-                                                                            or
-
-                                                                           Select
-
-                                              ================= in
-                                              : CO2 file
-                                                                           MENU
-                                              -----·------------
-
-                                   BINTAB->:      CO fi 1e         :-:
-
-                                                                   I
-                                                                    I
-
-                                                                   I
-                                                                   I
-
-                                                  00 file9         I
-                                                                   I
-
-                                              --------------
-                                                                   .,I
-                                                  BA file9
-
-                                   ^X8000 ---------~-----
-
+                                              |               |
+                                              | machine prog  |
+                                              |               |<--| BLOAD
+                                              -----------------   |  or
+                                              |               |   |
+                                              |               |   |
+                                              -----------------   |
+                                              |               |   | Select
+                                              =================   |  in
+                                              | CO2 file      |   |
+                                              -----------------   |
+                                              |               |   | MENU
+                                              |  CO file      |---|
+                                      BINTAB->|               |
+                                              -----------------
+                                              |               |
+                                              |  DO files     |
+                                              |               |
+                                              -----------------
+                                              |               |
+                                              |  BA files     |
+                                              |               |
+                                      ^X8000  -----------------
                                              Fig 8.1
 
                                             - 118 -
 
                                                             ,-
 
-                                      /
-                              :hine prog
-
-                                    ---------------- ^XFFFF
-
+                               
+                        [garbled] chine prog
+                                    ----------------- ^XFFFF
+                                    |               |
                                     =================
-
-                                       machine prog <-- PC
-
-                                                           <- STRENO
-
-                                    =================      <- "XAAAA
-                                        CO2 file
-
-                                       CO file             <- BINTAB
-
-                                        00 files
-
-                                                         I
-                                                        ~ I
-
-                                        BA files
-
-                              :000 -----------------
+                                    |               |
+                                    -----------------
+                                    |               |
+                                    | machine prog  |
+                                    |               | <-- PC
+                                    -----------------
+                                    |               |
+                                    |               | <- STREND
+                                    -----------------
+                                    |               |
+             [left side garbled]    =================
+                                    |  CO2 file     | <- ^XAAAA
+                                    -----------------
+                                    |               |
+                                    | CO file       |
+                                    |               | <- BINTAB
+                                    -----------------
+                                    |               |
+                                    |  DO files     |
+                                    |               |
+                                    -----------------
+                                    |               |
+                                    |  BA files     |
+                                    |               |
+                             ^X8000 -----------------    
 
                                     Fig 8.2
 
@@ -4726,128 +4506,117 @@ l     RAM FILE HANDLING
 
      RAM FILE HANDLING
 
-          3. Delete the CO·file and move the data between the STRENO and
-                "XAAAA.
+          3. Delete the CO file and move the data between the STREND and
+             ^XAAAA.
 
                                     ----------------- ^XFFFF
-
+                                    |               |
+                                    =================          
+                                    |               |
+                                    -----------------          
+                                    |               |          
+                                    | machine prog  |          
+                                    |               | <-- PC
+                                    -----------------          
+                                    |               |
+                                    |               | <- STREND
+                                    -----------------
+                                    |               |          
                                     =================
+                                    |               |
+                                    | CO2file       |          
+                                    |               | <- BINTAB
+                                    -----------------          
+                                    |               |
+                                    |  DO files     |          
+                                    |               |
+                                    -----------------          
+                                    |               |          
+                                    |  BA files     |
+                                    |               |
+                            ^X8000  -----------------
+                                    Fig 8.3
 
-                                    I                    I
-                                    I                    I
-                                    : machine prog :<- PC
+                   NOTE: PC means Program Counter
 
-                                                           <- STRENO
+                                          - 120 -
 
-                                    -II ----------------
-
-                                    : CO2 file             <- BINTAB
-
-                                                         I.
-                                                         I
-
-                                        00 files
-
-                                       BA files
-
-                         ^X8000 ----------~~--
-
-                                   Fig 8.3
-               NOTE: PC means Program Counter
-
-                                            - 120 -
       RAM FILE HANDLING
 
-                          Unfortunately, you cannot use MASOEL simply for
-
+                          Unfortunately, you cannot use MASDEL simply for
                 shrinking the hole which is made by killing the CO file, like
-
-                in deleting a BA file and a 00 file. Because MASOEL changes
-
+                in deleting a BA file and a DO file. Because MASOEL changes
                 the pointer, BINTAB. ( You can understand why BINTAB should
-
-                not  be  changed   by  reviewing    the  sec~ion,    'What  is   RAM    files'
-                      1
+                not be changed by reviewing the section, 'What is RAM files'
                 and Bookkeeping area'.) So if you want to use MASDEL, I do
-
                 recommend that, you have to save the BINTAB before calling
-
-                MASOEL and restore it after calling MASOEL.
+                MASDEL and restore it after calling MASDEL.
 
                           Cf. The flow of deleting CO file.
 
                          1. Search a file name which you want to delete
-
-                         2. Save the starting address in the airectory
-
+                         2. Save the starting address in the directory
                          3. Calculate the size of that file. The 2nd and 3rd
-                              byte in that file show the data length. So the
-                              total size of the file is made by adding 6 bytes
-                              to the data length. (The 6 bytes includes the
-                              starting address, da1 ta length and the execution
-                              address. Refer to What is the RAM file.·)
-
-                         4. Set the starting address and the length for MASOEL
-
-                         s. Save BINTAB
-
+                            byte in that file show the data length. So the
+                            total size of the file is made by adding 6 bytes
+                            to the data length. (The 6 bytes includes the
+                            starting address, data length and the execution
+                            address. Refer to "What is the RAM file.")
+                         4. Set the starting address and the length for MASDEL
+                         5. Save BINTAB
                          6. Call MASDEL
-
                          7. Recover BINTAB
-
                          8. Clear the directory flag of the file
-
                          9. That's all
 
                                             - 121 -
       RAM FILE HANDLING
 
-                8.4 HOW TO APPEND DATA TO 00 FILE"
+                8.4 HOW TO APPEND DATA TO DO FILE
 
-                          The way to append data to the 00 file is very easy.
-                At the first, get the starting aadress of the 00 file in the
-
-                directory and search the end of file, AZ. Then, make a room
-
+                          The way to append data to the DO file is very easy.
+                At the first, get the starting address of the DO file in the
+                directory and search the end of file, ^Z. Then, make a room
                 for data you want to store at that point. The routine,
-                MAKHOL, is a best routine to-make a room. Refer to ·useful
-                Routine For RAM file handling in ROM #0·. And don't forget to
+                MAKHOL, is a best routine to make a room. Refer to "Useful
+                Routine For RAM file handling in ROM #0". And don't forget to
                 refine the starting address of other files in the directory
-                area. LNKFIL will help you. Refer to previous chapter, ·How
-                to make a DO file· also.
+                area. LNKFIL will help you. Refer to previous chapter, "How
+                to make a DO file" also.
 
-                          Cf. APPEND data to the 00 file
+                          Cf. APPEND data to the DO file
+                          
                           1. Search the file name in the directory
 
                           2. Make sure the file type and status by checking the
+                             directory flag.
 
-                               directory flag.
+                          3. Get the starting address in the directory
 
-                          3~ Get the starting address in the directory
+                          4. Search the end of file, ^Z ( 26 in Decimal)
 
-                          4. Search the end of file, AZ ( 26 in Decimal)
-                          5. Make a hole_just before the AZ.
-
+                          5. Make a hole just before the AZ.
                                     I recommend to use MAKHOL.
-                         6. Store data in the hole
-                          7. Shrink the hole, when the hole you made 1s too
 
-                               large for the data ·
-                                    MASOEL in ROM #0 is useful.
+                          6. Store data in the hole
+
+                          7. Shrink the hole, when the hole you made is too
+                             large for the data ·
+
+                                    MASDEL in ROM #0 is useful.
 
                          8. Refine the starting address in the Directory area.
-
                                     LNKFIL will help you.
 
                          9. End
 
-                         There is a sample program of how to APPEND data to 00
-               file in the foll~wing section.
+                         There is a sample program of how to APPEND data to DO
+               file in the following section.
 
                                             - 122 -
      RAM FILE HANDLING
 
-               8.5 HOW TO INSERT DATA TO DO FIL~
+               8.5 HOW TO INSERT DATA TO DO FILE
 
                          When you want to insert some data to the DO file, you
                can use the know-how which you Wse to APPEND data to the DO
@@ -4856,66 +4625,83 @@ l     RAM FILE HANDLING
                of file.
 
                          Cf. Insert data to DO file
-                         1. Search the file name in the directory
-                         2. Make sure the file type and status by checking the
 
-                              directory flag
+                         1. Search the file name in the directory
+
+                         2. Make sure the file type and status by checking the
+                            directory flag
+
                          3. Get the starting address in the directory
+
                          4. Get the address where you want to insert the data
+
                          5. Make a hole for the data at the point
 
                               Usually, MAKHOL in ROM #0 is used. MAKHOL changes
                               the pointers, BINTAB, VARTAB, ARYTAB and STREND.
-                        6. Copy data in the hole
-                        7. Shrink the hole, when the hole is too large for
-                              the data
 
-                                   MASOEL in ROM #0 is useful. MASOEL adjusts
-                              the pointers, BINTAB, VARTAB, ARYTAB and STRENO.
+                        6. Copy data in the hole
+
+                        7. Shrink the hole, when the hole is too large for
+                           the data
+
+                                   MASDEL in ROM #0 is useful. MASDEL adjusts
+                              the pointers, BINTAB, VARTAB, ARYTAB and STREND.
+
                         8. Adjust the starting address in the RAM.
 
                                   LNKFIL in ROM #0 is useful. Refer to "Useful
                              Routines for RAM file Handling in ROM #0".
+
                         9. End
 
                                            - 123 -
-                                                 ...
+
 
      RAM FILE HANDLING
-               8.6 HOU TO DELETE DATA FROM DO FILE
+
+               8.6 HOW TO DELETE DATA FROM DO FILE
+
                          To DELETE data from the 00 file is easier than to
-               INSERT data to the 00 file. If you will use the ROM #0, the
-               routine named MASDEL delete the da~a. The MASOEL refines the
+               INSERT data to the DO file. If you will use the ROM #0, the
+               routine named MASDEL delete the data. The MASOEL refines the
                pointers and LNKFIL adjusts the starting addresses of other
-               file's. You can find the detail information about MASDEL and
-               LNKFIL in "useful Routine for RAM file in ROM #0. If you
+               files. You can find the detail information about MASDEL and
+               LNKFIL in "Useful Routine for RAM file in ROM #0". If you
                cannot use the ROM #0, you have to renew the pointers, BINTAB,
-               VARTAB, ARYTAB and STRENO by YOURSELF. And you must modify
+               VARTAB, ARYTAB and STREND by YOURSELF. And you must modify
                the starting addresses in the directory YOURSELF. Refer to
-               the chapter "oirectory construction" and "Bookkeeping" to
-              under stand the directory structure and pointers. "MAKHOL"
-               and "LNKFIL" in "useful Routine for RAM file handling in ROM
-               #&" show you how to do it "
+               the chapter "Directory construction" and "Bookkeeping" to
+               under stand the directory structure and pointers. "MAKHOL"
+               and "LNKFIL" in "Useful Routine for RAM file handling in ROM
+               #0" show you how to do it.
 
                                        ·
 
                                            - 124 -
       RAM FILE HANDLING
+
                 8.7 USEFUL ROUTINES FOR RAM FILE HANDLING IN ROM #0
+
                           There are several useful routines in ROM #0 for RAM
-                file handling. ·Indeed that you have to do 'bank-switching' to
+                file handling. Indeed that you have to do 'bank-switching' to
                 use these RAM file handling routines from ROM #1. (Refer to
                 Chapter 3.3) But you don't have to worry about the pointers,
                 if you use them. And also, you can save the time to make your
                 own subroutines. I do recommend you to use these RAM file
                 handling routines in ROM #0 for saving time and making
                 applications smoothly.
+
                 The presented useful routine in ROM #0.
+                
                 MAKHOL: Make a room for data entry with changing the pointers
-                LNKFIL: Make sure the start addre~s in the directory area
+
+                LNKFIL: Make sure the start address in the directory area
+
                 MASDEL: Shrink the room made by MAKHOL. This file help you
-                           when you made a too large hole.
-               CHEAO: Search the end of file in BA file.
+                        when you made a too large hole.
+
+                CHEAD: Search the end of file in BA file.
 
                                             - 125 -
 
@@ -4926,61 +4712,57 @@ l
 
                            Make a hole
 
-                   ADDRESS           ^X6C0A C AO66012, 27658 >
+                   ADDRESS           ^X6C0A ( ^O66012, 27658 )
 
-                   ENTRY CHLJ points where you want to make a hole
+                   ENTRY [HL] points where you want to make a hole
 
-                           CBCJ size of the hole
+                         [BC] size of the hole
 
-                   EXIT CHLJ and CBCJ are preserved
+                   EXIT  [HL] and [BC] are preserved
+                         Carry is set if out of memory
 
-                          Carry is set if out of memory
-
-                                     In order to know the free area's size, STRENO
-
-                           is the best pointer. The amount of the STRENO and
-
+                                 In order to know the free area's size, STREND
+                          is the best pointer. The amount of the STREND and
                           your file's size, in this case, should be less than
-                                      120. (The "sp" means Stack Pointer, as you
-                          CSPJ
-
+                          [SP] - 120. (The "SP" means Stack Pointer, as you
                           know. ) The 120 bytes are reserved for Stack's
-
                           operation. If there is a enough room, MAKHOL shifts
-
-                          the all data between the specified address and STRENO.
-
-                          If not,· MAKHOL returns with carry set. The flow of
-
+                          the all data between the specified address and STREND.
+                          If not, MAKHOL returns with carry set. The flow of
                           MAKHOL is listed at next page.
 
                                              - 126 -
-     RAM FILE HANDLING
-                         ex. The flow of MAKHOL. tHow to make a room safely.)
+
+RAM FILE HANDLING
+                
+                ex. The flow of MAKHOL. tHow to make a room safely.)
 
-                          /---M-A-K-H-O-L----¥
-
-                          ¥------------/
-
-                          ; STRENO + Required bytes
-
-                                     < SP - Stack area ( 120 bytes) :
-
-                                    I    No
-                                    I
-                                    :-----.----> Out of Memory
-
-                          : Move the data between STRENO and
-                               specified address
-
-                         --C--h-a-n-ge--t-h-e--p--o-in--te-r-s----------------- **
-
-                            ASCTAB, BINTAB, VARTAB, ARYTAB
-                               and STREND
-
-                         -----------------~-------------------
-                           -/--R-E-T-U--R-N---¥
-                           ¥-----------/
+                /------------\
+                |  MAKHOL    |
+                \------------/
+                        |
+                ------------------------------------------
+                | STREND + Required bytes                |
+                |        < SP - Stack area ( 120 bytes ) |
+                ------------------------------------------
+                        |
+                        |   No
+                        |---------> Out of Memory
+                        |
+                -------------------------------------
+                | Move the data between STREND and  |
+                |    specified address              |
+                -------------------------------------
+                        |
+                ------------------------------------- **
+                | Change the pointers               |
+                |  ASCTAB, BINTAB, VARTAB, ARYTAB   |
+                |    and STREND                     |
+                -------------------------------------
+                        |
+                  /-----------\
+                  |  RETURN   |
+                  \-----------/
 
                             Fig 8.4
 
@@ -4990,31 +4772,25 @@ l
                          does not change the starting address in the directory
                          field. Refer to LNKFIL.
 
-                            ·**When you make a hole just above the ASCTAB to
+                             ** When you make a hole just above the ASCTAB to
                              create a new DO file, you have to change the
-                              pointers, BINTAB, VARTAB and ARYTAB. The ASCTAB
-                              is modified only when you make a hole under ASCTAB
-                              to register a new BA file.
+                             pointers, BINTAB, VARTAB and ARYTAB. The ASCTAB
+                             is modified only when you make a hole under ASCTAB
+                             to register a new BA file.
 
                                             - 127 -
       RAM FILE HANDLING
 
-                          It is ~asy to guess that calling MAKHOL too many times
-
+                          It is easy to guess that calling MAKHOL too many times
                 will reduce the processing speed. So you had better call the
-
                 MAKHOL with a good large number in BC register. It makes a
-
                 good hole which is large enough to save the data you want to
                 keep. The only one thing you have to care of is that you have
-
-                to shrink the hole when you made a too big hole. The 00 file
-
-                cannot include NUL (0) and AZ (26) in the file. (The AZ means
-
+                to shrink the hole when you made a too big hole. The DO file
+                cannot include NUL (0) and ^Z (26) in the file. (The ^Z means
                 the End of File, as you know.) There is a convenient routine
                 to shrink the hole and it refines the pointers, also. Its
-                name is MASOEL and you can get the information about it in the
+                name is MASDEL and you can get the information about it in the
                 following section.
 
                                              - 128 -
@@ -5024,7 +4800,7 @@ l
 
                           Fix up directory structure
 
-                  ADDRESS           ^X233A < A021472, 9018 >
+                  ADDRESS           ^X233A ( ^O21472, 9018 >
 
                   ENTRY: NONE
 
@@ -5033,10 +4809,10 @@ l
 
                          This routine fixes up all possible incomplete "links"
                between files and their directories. There are many chances
-               in that the link pointers ( same as starting address>. in the
+               in that the link pointers ( same as starting address ). in the
                directory fields are not maintained properly. For instance,
                Making a new DO file will change the starting address of other
-               00 files and CO file. I agree that these link pointers should
+               DO files and CO file. I agree that these link pointers should
                be modified every time when the RAM organization is modified.
                But it is also true that such a operation will make a big
                overhead in RAM file handling. Since you had better make sure
@@ -5049,95 +4825,105 @@ l
 
                           Internal flow of LNKFIL
 
-                          /---L-N-K-F-I-L-------¥
-                          ¥---------------/
+                          /---------------\
+                          |  LNKFIL       |
+                          \---------------/
+                                  |
+                          -------------------------------
+                          | Mark the all valid directory|
+                          | flag (turn 0 of all         |
+                          | valid directory flag        |
+                          -------------------------------
+                                  |
+                          -------------------------------
+                          | Get the lowest file address |
+                          -------------------------------
+                                  |
+                          -------------------------------
+                          | Get the lowest link pointer |
+                          |  in the valid file's        |
+                          |   directory                 |
+                          -------------------------------
+                                  |
+                          --------------------------
+                          | Save this link pointer |
+                          --------------------------
+                                  |<-----------------------------|
+                          ---------------------------------      |
+                          | Search the lowest link pointer|      |
+                          | in the marked files in        |      |
+                          | directory area                |      |
+                          ---------------------------------      |
+                                  |                              |
+                          ---------------------------------      |
+                          | Save the saved link pointer   |      |
+                          | at this marked files link     |      |
+                          | pointer field                 |      |
+                          ---------------------------------      |
+                                  |                              |
+                          ---------------------------------      |
+                          | Unmark the directory flag of  |      |
+                          | that file. (turn off the bit 0|      |
+                          | of that file)                 |      |
+                          ---------------------------------      |
+                                  |                              |
+                                 (A)                            (B)
 
-                            Mark the all valid directory:
-                          : flag (turn 0 bit of all
-                          : valid directory flag)
-
-                          : Get the lowest file address:
-
-                          ~-----------------------------
-
-                            Get the lowest link pointer
-                             in the valid file's
-                               directory
-
-                          : Save this link pointer r
-
-                                    :<------------------------------·
-
-                            Search the lowest link pointer:
-                          : in the marked files in
-                          : directory area
-
-                          --S-a-v-e-t-h-e-s-a-v-e-d--li-n-k--p-o-in-t-e-r ---
-
-                            at this marked files link
-                            pointer field ·
-
-                          ---------II -:-----~-----------------
-
-                            Demark the directory flag of
-                          : that file. (turn off the bit 0:
-                          : of that file)
-
-                                   (A)                                      (8)
-
-                                             - 130
+                                             - 130 -
       RAM FILE HANDLING
 
-                                    CA)                                       (8)
 
-                           l Get next lowest file address l
+                                 (A)                            (B)
+                                  |                              |
+                                  |                              |
+                        --------------------------------         |
+                        | Get next lowest file address |         |
+                        | from the bottom of RAM       |         |
+                        --------------------------------         |
+                                  |                              |
+                        --------------------------------         |
+                        | All marked directory flag    |         |
+                        | has unmarked?                |         |
+                        --------------------------------         |
+                                  |     Not End of directory     |
+                                  +------------------------------+
+                                  |
+                                  | End of directory
+                        /-----------------\
+                        |       END       |
+                        \-----------------/
 
-                           l from the bottom of RAM                l ·
-                           --------------------------------
-
-                           -l -A--ll--m-a-r-k-ed--d-i-r-e-c-to-r-y--f-l-a-g-----
-
-                           l has demaked?
-
-                           ----------------N--o-t-E--nd---o-f--d-i-re-c-tory
-
-                                     l End of directory
-
-                           /------E-N-O-------¥
-
-                           ¥---------~----/
 
                                      Fig 8.5
 
-                          When the top address of ~he next file is searched, the
+                          When the top address of the next file is searched, the
                 pointers, ASCTAB and BINTAB are useful to know what kind of
                 file is searched now.
 
                                              - 131 -
       RAM FILE HANDLING
 
-                8.7.3 MASOEL
+                8.7.3 MASDEL
 
-                         Delete CBCJ bytes from CHL. J
+                         Delete [BC] bytes from [HL]
 
-                  ADDRESS: ^X6C3C C A066074, 27708)
+                  ADDRESS: ^X6C3C ( ^O66074, 27708)
 
-                  ENTRY:            CHLJ pointer of the hole should be squeezed
+                  ENTRY:      [HL] pointer of the hole should be squeezed
+                              [BC] size of the hole
 
-                          CBCJ size of the hole
-
-                  EXIT: CHLJ preserved
-                         CBCJ negated
+                  EXIT:  [HL] preserved
+                         [BC] negated
 
                                     This routine do exactly reverse operation of
-                          MAKHOL. The data above the CHLJ+CBCJ is moved up.
-                          And the pointers, BINTAB, VARTAB~ ARYTAS are modified.
+                          MAKHOL. The data above the [HL]+[BC] is moved up.
+                          And the pointers, BINTAB, VARTAB, ARYTAB are modified.
                           If you use this routine for shrinking a hole of BA
-                          file, you can adjust the ASCTAB with the negated CBCJ _
+                          file, you can adjust the ASCTAB with the negated [BC]
                           after exit this routine. And also you can adjust the
                           TXTTAB by using this negated BC register if necessary.
                           You have to adjust the TXTTAB when you remove a BA
-                          file which is located under the address where 1s
+                          file which is located under the address where is
                           pointed by TXTTAB.
 
                                     If you want utilize this routine for CO file,
@@ -5145,7 +4931,7 @@ l
                           BINTAB is not modified by killing CO file.
 
                                              - 132 -
-      RAM FILE HANDLING                                      ,
+      RAM FILE HANDLING
 
                                                            ...
 
@@ -5153,11 +4939,11 @@ l
 
                           Search for the end of this BASIC program
 
-                  ADDRESS           ^X718 C 34300, 1816)
+                  ADDRESS           ^X718 ( 3430O, 1816)
 
-                  ENTRY·: CHLJ Top address of that BASIC file
+                  ENTRY : [HL] Top address of that BASIC file
 
-                  EXIT: CHLJ The last address of that BASIC file
+                  EXIT  : [HL] The last address of that BASIC file
                          All registers and flags are modified possibly
 
                                     The main purpose of CHEAD is fix links of the
@@ -5165,7 +4951,7 @@ l
                           program storage and fixes up all the links. The end
                           of each line is found by searching for the zero at the
                           end. The double zero link is used to detect the end
-                          of the program. So EXIT CHLJ and one will show you
+                          of the program. So EXIT [HL] and one will show you
                           the top address of the next file.
 
                                              - 133 -
@@ -5173,9 +4959,8 @@ l
                                                           --~
 
                8.8 SAMPLE PROGRAM
-                         The sample ,programs listed here are the exactly
-
-               "sAMPLE". So some processes are omitted to make explanation
+                         The sample programs listed here are the exactly
+               "SAMPLE". So some processes are omitted to make explanation
                clearly. For instance, searching directory to find the good
                slot for file handling is not described except "How to make a
                DO file". You know that you have to survey the all directory
@@ -5183,75 +4968,62 @@ l
                new file.
 
                          And also, these programs, stored this section are
-               written in plane program technic. You will find another good
-               algorism to handle the RAM files safely and quickly.
+               written in straightfoward technique. You will find another good
+               algorithm to handle the RAM files safely and quickly.
 
                                            - 134 -
      RAM FILE HANDLING
 
-               8.8.1 Make A New 00 File (ASCii File)
+               8.8.1 Make A New DO File (ASCII File)
 
-                  ; Register    new DO file in the Directory area
-                                DO file
-                  ;       OPEN
+                  ; Register new DO file in the Directory area
+
+                  ;      OPEN DO file
                   ;
-
                   USRDIR            EQU       ^XF891 ;Top address of user's
                                               ;directory
-                                    EQU
-                  EOTDIR            EQU       USROIR - Directory length
-                  OIRLEN                      11         ;Length of the directory per
-                  file
-                  NAMLEN            EQU       6          ;Length of the file name
-                  ASCTAB            EQU       ^XFAE1 ;Points the lowest address of
-
-                                    EQU       ;DO files
-                                              ^X233A ;Make up the address 1n
-                  LNKFIL
+                  EOTDIR            EQU       USRDIR - Directory length
+                  DIRLEN            EQU       11      ;Length of the directory per file                        
+                  NAMLEN            EQU       6       ;Length of the file name
+                  ASCTAB            EQU       ^XFAE1  ;Points the lowest address of
+                                              ;DO files
+                  LNKFIL            EQU       ^X233A ;Make up the address in
                                               ;Directory
-                                    EQU       ^X6C0A ;Make a room for file
-                  MAKHOL                      A1AH ;End of 00 file
-                  EOFFIL            EQU
+                  MAKHOL            EQU       ^X6C0A ;Make a room for file
+                  EOFFIL            EQU       ^1AH    ;End of DO file
 
-                 OPENDO:            A         ;Clear HL
-                        XRA         H,A       , ·
-                        MOV         L,A . ,·
-                        MOV         SLTAOR ;Clear slot address
-                        SHLO
-                                   H,EOTOIR ;Set Ctop of user directory]
-                 , ·                         ; - Directory length
-
-                        LXI        B,OIRLEN;Set Directory length
-                                              ;Get next slot
-                 SEANAM:           8
-                        LXI
-                        DAO        A,M        ;Get directory flag
-                        MOV         AX80 ; Va 1 id?
-                        CPI
-                        JC         NONVAL     ;Jump if not valid slot
-                        INR        A          ;End of directory area?
-                                   ENOSEA     ;Jump if end of test
-                 ,· JZ
-                                   DO file?
-                 ; Is the file
-
-                         OCR       A          ;Adjust directory flag
-
-                         MOV       D,A        ;copy flag for later use
-                         AN!       AB01000000
-
-                         ORA       A          ;Pick up ASCII flag
-                                              ;DO file?
-
-                  ,· JZ            SEANAM     ;Jump if not DO file
-
-                  ,· Compare the name
-                  , ·
-
-                         PUSH H               ;Save the slot address
-                         INX       H          ;Advance to name field in
-                         INX
-                                   H
+                  OPENDO:
+                        XRA         A         ;Clear HL
+                        MOV         H,A       ;
+                        MOV         L,A       ;
+                        SHLD        SLTADR    ;Clear slot adress
+                  ;
+                        LXI         H,EDTDIR   ;Set [top of user directory]
+                                            ;     - Directory length
+                  SEANAM:
+                        LXI         B,DIRLEN;Set Directory length
+                        DAD         B       ;Get next slot
+                        MOV         A,M     ;Get directory flag
+                        CPI         ^X80    ;Valid?
+                        JC          NONVAL  ;Jump if not valid slot
+                        INR         A       ;End of directory area?
+                        JZ          ENDSEA  ;Jump if end of test
+                 ;
+                 ; Is the file DO file?
+                 ;
+                        DCR         A       ;Adjust directory flag
+                        MOV         D,A     ;copy flag for later use
+                        ANI         ^B01000000
+                                            ;Pick up ASCII flag
+                        ORA         A       ;DO file?
+                        JZ          SEANAM  ;Jump if not DO file
+                 
+                 ;
+                 ; Compare the name
+                 ;
+                        PUSH        H       ;Save the slot address
+                        INX         H
+                        INX         H       ;Advance to name field in
 
                                             - 135 -
       RAM FILE HANDLING

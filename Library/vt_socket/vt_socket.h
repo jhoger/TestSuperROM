@@ -61,6 +61,7 @@ void vt_socket_destroy(vt_socket_handle_t handle);
 
 bool vt_socket_connect(vt_socket_handle_t handle);
 void vt_socket_disconnect(vt_socket_handle_t handle);
+bool vt_socket_flush(vt_socket_handle_t handle);
 bool vt_socket_send_command(vt_socket_handle_t handle,
                             const char* command,
                             char* response,

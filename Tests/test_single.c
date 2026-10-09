@@ -55,9 +55,11 @@ void test_launch_and_terminate(void) {
     vt_interact_destroy(handle);
 }
 
-int main(void) {
-    setUp();
-    test_launch_and_terminate();
-    tearDown();
-    return 0;
+int main(int argc, char** argv) {
+    /* Parse command line arguments for test filtering */
+    UnityParseOptions(argc, argv);
+
+    UNITY_BEGIN();
+    RUN_TEST(test_launch_and_terminate);
+    return UNITY_END();
 }

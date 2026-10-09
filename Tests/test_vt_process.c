@@ -60,18 +60,21 @@ void test_launch_terminate(void) {
     vt_process_destroy(handle);
 }
 
-int main(void) {
+int main(int argc, char** argv) {
     const char* error;
-    
+
+    /* Parse command line arguments for test filtering */
+    UnityParseOptions(argc, argv);
+
     UNITY_BEGIN();
     RUN_TEST(test_basic);
     RUN_TEST(test_launch_terminate);
-    
+
     /* Print error info if test failed */
     error = vt_process_get_error();
     if (error && error[0] != '\0') {
         printf("Error: %s\n", error);
     }
-    
+
     return UNITY_END();
 }

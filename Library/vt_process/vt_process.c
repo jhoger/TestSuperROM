@@ -54,8 +54,17 @@ static bool vt_process_create_process(const vt_process_config_t* config, VT_PROC
         }
     }
 
-    /* Handle both forward and backward slashes for path separators */
+    /* Trim trailing whitespace and slashes from path */
     size_t path_len = strlen(virtualt_path);
+    while (path_len > 0 && (virtualt_path[path_len - 1] == ' ' ||
+                            virtualt_path[path_len - 1] == '\t' ||
+                            virtualt_path[path_len - 1] == '\\' ||
+                            virtualt_path[path_len - 1] == '/')) {
+        virtualt_path[path_len - 1] = '\0';
+        path_len = strlen(virtualt_path);
+    }
+
+    /* Handle both forward and backward slashes for path separators */
     char last_char = (path_len > 0) ? virtualt_path[path_len - 1] : '\0';
 
     /* If virtualt_path ends with slash, append platform-specific executable name */

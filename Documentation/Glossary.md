@@ -60,6 +60,9 @@ A text file referenced by or embedded in a THOUGHT outline. Document files can b
 ### Document Mode
 A mode in THOUGHT where you can edit the text content of a document referenced in the outline. Entered by pressing ENTER on a document reference or F6 from outline mode.
 
+### Document Reference
+A navigable link embedded in a THOUGHT outline that points to an external text document (.DO file). When you press ENTER on a document reference, you jump to the TEXT editor application to view or edit the referenced document. Pressing F8 in TEXT returns you to the outline. Document references are indicated by the `.` symbol in the outline and allow the outline to serve as a catalog or index to external text content without loading all documents into RAM.
+
 ---
 
 ## E
@@ -281,7 +284,7 @@ A navigation and input key. In THOUGHT, used for creating outline hierarchy and 
 Indentation markers in text that create hierarchy when pasted into THOUGHT. Each TAB becomes one level of indentation.
 
 ### TEXT
-Text editor application that creates and edits plain text files. Can be used with THOUGHT via Copy/Paste operations.
+Text editor application built into the NEC PC-8201A and TRS-80 Model 100/200. Creates and edits plain text files (`.DO` or `.TX` extensions). THOUGHT can jump to TEXT to view or edit document referenced via document references (`.`, not `?`). To create a document reference, type text in outline and press F2 (converts `?` to `.`).
 
 ### THOUGHT
 The outline processor. Also the name of the software program and its file extension (.CT).

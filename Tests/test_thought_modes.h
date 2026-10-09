@@ -9,8 +9,8 @@
 #include "unity.h"
 
 /* Test function declarations */
-void test_mode_create_to_review(void);
-void test_mode_review_to_document(void);
-void test_mode_document_to_review(void);
+void test_thought_mode_create_enter(void);
+void test_thought_mode_create_to_review(void);
+void test_thought_mode_visual_indicators(void);
 
 #endif /* TEST_THOUGHT_MODES_H */

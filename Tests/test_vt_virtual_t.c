@@ -240,23 +240,26 @@ void test_complete_workflow(void) {
     process_handle = NULL;
 }
 
-int main(void) {
+int main(int argc, char** argv) {
     const char* error;
-    
+
+    /* Parse command line arguments for test filtering */
+    UnityParseOptions(argc, argv);
+
     UNITY_BEGIN();
-    
+
     /* Run all tests */
     RUN_TEST(test_process_create_destroy);
     RUN_TEST(test_launch_virtualt);
     RUN_TEST(test_set_model_pc8201);
     RUN_TEST(test_load_option_rom);
     RUN_TEST(test_complete_workflow);
-    
+
     /* Print error info if tests failed */
     error = vt_process_get_error();
     if (error && error[0] != '\0') {
         printf("Error: %s\n", error);
     }
-    
+
     return UNITY_END();
 }

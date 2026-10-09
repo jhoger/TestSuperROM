@@ -291,6 +291,24 @@ void vt_socket_disconnect(vt_socket_handle_t handle) {
     i->is_connected = false;
 }
 
+/* Trace logging - low level socket traffic */
+static void vt_socket_trace(const char* direction, const char* data, size_t len) {
+#ifdef VT_SOCKET_TRACE
+    fprintf(stderr, "[SOCKET %s] %zu bytes: ", direction, len);
+    for (size_t i = 0; i < len && i < 64; i++) {
+        unsigned char c = ((unsigned char*)data)[i];
+        if (c >= 32 && c < 127) {
+            fprintf(stderr, "%c", c);
+        } else {
+            fprintf(stderr, "\\x%02X", c);
+        }
+    }
+    if (len > 64) fprintf(stderr, "...");
+    fprintf(stderr, "\n");
+    fflush(stderr);
+#endif
+}
+
 bool vt_socket_send_command(vt_socket_handle_t handle, const char* command, char* response, size_t response_size) {
     vt_socket_internal_t* i = (vt_socket_internal_t*)handle;
     if(!i || !i->is_connected || !command || !response || response_size == 0) return false;
@@ -299,17 +317,22 @@ bool vt_socket_send_command(vt_socket_handle_t handle, const char* command, char
     size_t cmd_len = strlen(command);
     if (cmd_len >= VT_MAX_COMMAND_LEN) return false;
 
+    /* Trace the command being sent */
+    vt_socket_trace("SEND", command, cmd_len);
+
     /* Send the command directly */
     ssize_t s = send(i->socket_fd, command, (int)cmd_len, 0);
-    if(s <= 0) return false;
+    if(s <= 0) {
+        return false;
+    }
 
     /* Receive response with timeout */
     /* Use a moderate timeout (5 seconds) for commands that may take longer */
     DWORD timeout = 5000;  /* 5 second timeout */
     setsockopt(i->socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
 
-    /* Read all available data (may contain events + Ok) */
-    ssize_t r = recv(i->socket_fd, response, (int)response_size - 1, 0);
+    /* Read response - VirtualT sends the response after the command is processed */
+    ssize_t r = recv(i->socket_fd, response, (int)(response_size - 1), 0);
     if(r <= 0) {
         /* Timeout or error */
         response[0] = '\0';
@@ -317,6 +340,7 @@ bool vt_socket_send_command(vt_socket_handle_t handle, const char* command, char
     }
 
     response[r] = '\0';
+    vt_socket_trace("RECV", response, r);
 
     /* Parse the response */
     char response_out[2048];
@@ -325,15 +349,51 @@ bool vt_socket_send_command(vt_socket_handle_t handle, const char* command, char
     /* For 'sd' command, the response is the screen content directly (no 'Ok')
      * In this case, use the raw response directly */
     if (strstr(command, "sd") == command) {
-        /* Copy raw response to output buffer (already null-terminated at response[r]) */
+        /* Copy raw response to output buffer */
         strncpy_s(response, response_size, response, response_size - 1);
-        return true;  /* sd command always succeeds with screen content */
+        return true;
+    }
+
+    /* For 'key' command, the response may not contain 'Ok' but the command
+     * may still succeed. Accept non-empty response as success. */
+    if (strstr(command, "key ") == command && response[0] != '\0') {
+        /* Copy raw response to output buffer */
+        strncpy_s(response, response_size, response, response_size - 1);
+        return true;
     }
 
     /* Copy to output buffer */
     strncpy_s(response, response_size, response_out, response_size - 1);
 
     return ok;
+}
+
+/* Flush any pending data from the socket buffer */
+bool vt_socket_flush(vt_socket_handle_t handle) {
+    vt_socket_internal_t* i = (vt_socket_internal_t*)handle;
+    if(!i || !i->is_connected) return false;
+
+    char buffer[1024];
+    int bytes_read = 0;
+
+    /* Use ioctl to set non-blocking mode */
+    u_long nonblocking = 1;
+    ioctlsocket(i->socket_fd, FIONBIO, &nonblocking);
+
+    ssize_t r = recv(i->socket_fd, buffer, sizeof(buffer) - 1, 0);
+    while (r > 0) {
+        bytes_read += r;
+        buffer[r] = '\0';
+        /* Optionally trace the flushed data */
+        vt_socket_trace("FLUSH", buffer, r);
+        r = recv(i->socket_fd, buffer, sizeof(buffer) - 1, 0);
+    }
+
+    /* Reset to blocking mode */
+    nonblocking = 0;
+    ioctlsocket(i->socket_fd, FIONBIO, &nonblocking);
+
+    return true;
 }
 
 bool vt_socket_send_command_fmt(vt_socket_handle_t handle, const char* command, const char* format, ...) {

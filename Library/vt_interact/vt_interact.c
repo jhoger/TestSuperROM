@@ -1118,3 +1118,105 @@ bool vt_interact_read_memory(vt_interact_handle_t handle, uint16_t address, size
 
     return true;
 }
+
+/* Raw memory read - returns all bytes including non-printable */
+bool vt_interact_read_memory_raw(vt_interact_handle_t handle, uint16_t address, size_t length, uint8_t* output, size_t output_size) {
+    vt_interact_internal_t* internal = (vt_interact_internal_t*)handle;
+    if (!internal || !internal->socket || !output || output_size == 0) {
+        vt_interact_set_error("Invalid arguments to vt_interact_read_memory_raw");
+        return false;
+    }
+
+    char response[4096];
+    char command[64];
+    size_t pos = 0;
+
+    /* Debug: show what address we're reading */
+    printf("DEBUG: Reading memory at address 0x%04X (%u), length=%zu\n", address, address, length);
+
+    /* Set radix to 16 (hex) - ignore response as it might be stale */
+    vt_socket_send_command(internal->socket, "radix 16", response, sizeof(response));
+
+    /* Small delay to ensure radix is set */
+    Sleep(50);
+
+    /* Read memory using rm command with retry */
+    snprintf(command, sizeof(command), "rm %u %zu", address, length);
+
+    /* Debug: show the command being sent */
+    printf("DEBUG: Command to send: '%s'\n", command);
+    fflush(stdout);
+
+    /* Retry loop - memory read should return hex bytes, not "Ok" */
+    int retries = 3;
+    while (retries > 0) {
+        printf("DEBUG: Attempting socket send...\n");
+        fflush(stdout);
+        if (!vt_socket_send_command(internal->socket, command, response, sizeof(response))) {
+            printf("DEBUG: vt_socket_send_command failed, retrying...\n");
+            retries--;
+            Sleep(50);
+            continue;
+        }
+
+        /* Debug: print the raw response */
+        printf("DEBUG: Raw response received (%zu chars): %.200s\n", strlen(response), response);
+        fflush(stdout);
+
+        /* Parse the response: "byte1 byte2 byte3 ..." -> array of raw bytes */
+        printf("DEBUG: About to strdup response...\n");
+        fflush(stdout);
+        pos = 0;
+        char* saveptr = NULL;
+        char* temp = _strdup(response);
+        printf("DEBUG: strdup returned: %p\n", (void*)temp);
+        fflush(stdout);
+        if (temp) {
+            printf("DEBUG: About to strtok_s...\n");
+            fflush(stdout);
+            char* token = strtok_s(temp, " \n\r\t", &saveptr);
+            printf("DEBUG: First token: %s\n", token ? token : "NULL");
+            fflush(stdout);
+            while (token != NULL && pos < output_size) {
+                /* Skip empty tokens */
+                if (strlen(token) == 0) {
+                    token = strtok_s(NULL, " \n\r\t", &saveptr);
+                    continue;
+                }
+                /* Parse hex value */
+                char* endptr;
+                long byte_val = strtol(token, &endptr, 16);
+                if (endptr != token && byte_val >= 0 && byte_val <= 255) {
+                    output[pos++] = (uint8_t)byte_val;
+                }
+                token = strtok_s(NULL, " \n\r\t", &saveptr);
+            }
+            printf("DEBUG: About to free temp...\n");
+            fflush(stdout);
+            free(temp);
+            printf("DEBUG: free completed\n");
+            fflush(stdout);
+        }
+
+        /* Debug: print how many bytes we got */
+        printf("DEBUG: Parsed %zu bytes (expected %zu)\n", pos, length);
+        fflush(stdout);
+
+        /* If we got all the bytes we expected, success */
+        if (pos == length) {
+            printf("DEBUG: Memory read successful!\n");
+            fflush(stdout);
+            return true;
+        }
+
+        /* Otherwise retry */
+        retries--;
+        Sleep(50);
+    }
+
+    /* Failed to read the expected amount of data */
+    printf("DEBUG: Final failure\n");
+    fflush(stdout);
+    vt_interact_set_error("Failed to read memory - incomplete response");
+    return false;
+}

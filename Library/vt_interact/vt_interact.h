@@ -260,9 +260,15 @@ bool vt_interact_read_string(vt_interact_handle_t handle, uint16_t address, char
  * @param handle - vt_interact handle
  * @param address - Memory address to read from
  * @param length - Number of bytes to read
- * @param output - Output buffer for memory contents (converted to printable ASCII)
- * @param output_size - Size of output buffer
+ * @param output - Output buffer for memory contents (raw bytes)
+ * @param output_size - Size of output buffer in bytes
  * @return true on success, false on failure
+ */
+bool vt_interact_read_memory_raw(vt_interact_handle_t handle, uint16_t address, size_t length, uint8_t* output, size_t output_size);
+
+/**
+ * Read memory as printable string
+ * Same as vt_interact_read_memory_raw but outputs as null-terminated string
  */
 bool vt_interact_read_memory(vt_interact_handle_t handle, uint16_t address, size_t length, char* output, size_t output_size);
 

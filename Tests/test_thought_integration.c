@@ -418,8 +418,11 @@ void test_thought_complete_workflow(void) {
     vt_interact_disconnect(handle);
 }
 
-int main(void) {
+int main(int argc, char** argv) {
     const char* error;
+
+    /* Parse command line arguments for test filtering */
+    UnityParseOptions(argc, argv);
 
     UNITY_BEGIN();
 

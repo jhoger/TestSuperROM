@@ -7,13 +7,6 @@ project(VIRTUALT_SOCKET_LIB VERSION 1.0.0)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-# Compiler flags (cross-platform)
-if(MSVC)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3")
-else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
-endif()
-
 # Add static library for vt_socket
 add_library(vt_socket STATIC
     Library/vt_socket/vt_socket.c
@@ -27,6 +20,11 @@ target_include_directories(vt_socket PUBLIC
 # Link Winsock on Windows
 if(MSVC)
     target_link_libraries(vt_socket ws2_32)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3")
+    target_compile_definitions(vt_socket PRIVATE VT_SOCKET_TRACE)
+else()
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
+    target_compile_definitions(vt_socket PRIVATE VT_SOCKET_TRACE)
 endif()
 
 # Add static library for vt_process
@@ -72,6 +70,9 @@ add_library(unity STATIC
 target_include_directories(unity PUBLIC
     ${CMAKE_SOURCE_DIR}/Tools/unity/src
 )
+
+# Enable command line argument support for Unity
+target_compile_definitions(unity PUBLIC UNITY_USE_COMMAND_LINE_ARGS)
 
 # Test executable for vt_process
 add_executable(vt_process_tests
@@ -136,7 +137,59 @@ add_executable(test_single_keystrokes
     Tests/test_single_keystrokes.c
 )
 
+target_include_directories(test_single_keystrokes PRIVATE
+    ${CMAKE_SOURCE_DIR}/Tests
+    ${CMAKE_SOURCE_DIR}/Library/vt_interact
+    ${CMAKE_SOURCE_DIR}/Library/vt_process
+    ${CMAKE_SOURCE_DIR}/Library/vt_socket
+    ${CMAKE_SOURCE_DIR}/Tools/unity/src
+)
+
 target_link_libraries(test_single_keystrokes vt_interact vt_process vt_socket unity)
+
+# Test executable for THOUGHT unit tests
+add_executable(thought_tests
+    Tests/test_thought_driver.c
+    Tests/test_thought_outline.c
+    Tests/test_thought_navigation.c
+    Tests/test_thought_modes.c
+    Tests/test_thought_hierarchy.c
+    Tests/test_thought_documents.c
+    Tests/test_thought_drag.c
+    Tests/test_thought_clone.c
+    Tests/test_thought_file.c
+    Tests/test_thought_create.c
+    Tests/test_thought_view.c
+    Tests/test_thought_deletion.c
+    Common/thought_test_common.c
+)
+
+target_include_directories(thought_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/Tests
+    ${CMAKE_SOURCE_DIR}/Common
+    ${CMAKE_SOURCE_DIR}/Library/vt_interact
+    ${CMAKE_SOURCE_DIR}/Library/vt_process
+    ${CMAKE_SOURCE_DIR}/Library/vt_socket
+    ${CMAKE_SOURCE_DIR}/Tools/unity/src
+)
+
+target_link_libraries(thought_tests vt_interact vt_process vt_socket unity)
+
+# Test executable for basic THOUGHT functionality
+add_executable(thought_basic
+    Tests/test_thought_basic.c
+)
+
+target_include_directories(thought_basic PRIVATE
+    ${CMAKE_SOURCE_DIR}/Tests
+    ${CMAKE_SOURCE_DIR}/Common
+    ${CMAKE_SOURCE_DIR}/Library/vt_interact
+    ${CMAKE_SOURCE_DIR}/Library/vt_process
+    ${CMAKE_SOURCE_DIR}/Library/vt_socket
+    ${CMAKE_SOURCE_DIR}/Tools/unity/src
+)
+
+target_link_libraries(thought_basic vt_interact vt_process vt_socket unity)
 
 # Test executable for simple keystrokes (no Unity framework)
 add_executable(test_simple_keystrokes

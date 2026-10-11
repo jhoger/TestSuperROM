@@ -72,13 +72,15 @@ static bool verify_ram_file_exists(const char* filename) {
         return false;
     }
 
-    /* Search for filename in directory (8-char filename format) */
-    size_t filename_len = strlen(filename);
+    /* THOUGHT stores files as 8-char name+extension (6+2 format with space padding) */
+    char full_filename[16];
+    snprintf(full_filename, sizeof(full_filename), "%s  CT", filename);
+    size_t filename_len = strlen(full_filename);
     for (int i = 0; i <= 88 - 8; i++) {
         bool match = true;
         for (int j = 0; j < 8; j++) {
             char dir_char = dir_buffer[i + j];
-            char file_char = (j < filename_len) ? filename[j] : ' ';
+            char file_char = (j < 8) ? full_filename[j] : ' ';
 
             if (j >= filename_len && dir_char == ' ') {
                 continue;
@@ -100,46 +102,53 @@ static bool launch_thought(void) {
     if (!vt_interact_menu_navigate(handle, 3, 0)) {
         return false;
     }
+    Sleep(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(500);
+    Sleep(1000);  /* Wait for save to complete */
 
     if (!vt_interact_press_key(handle, "f3")) {
         return false;
     }
     Sleep(500);
+    if (!vt_interact_press_key(handle, "enter")) {
+        return false;
+    }
+    Sleep(1000);  /* Wait for save to complete */
 
     return true;
 }
 
 /* Save to RAM filesystem and exit to main menu */
 static bool save_to_ram_filesystem(const char* filename) {
-    /* Save via F3 then Enter (saves to RAM filesystem by default) */
-    if (!vt_interact_press_key(handle, "f3")) {
-        return false;
-    }
-    Sleep(300);
-    if (!vt_interact_press_key(handle, "enter")) {
+    /* In THOUGHT Create mode:
+     * 1. Press F2 to save to RAM filesystem
+     * 2. Press F8 to exit THOUGHT back to SUPER ROM
+     * 3. Press F8 to exit SUPER ROM to main NEC menu
+     */
+
+    /* Save to RAM filesystem (F2 in Create mode) */
+    if (!vt_interact_press_key(handle, "f2")) {
         return false;
     }
     Sleep(500);
 
-    /* Exit THOUGHT back to SUPER ROM menu (F8 twice) */
+    /* Exit THOUGHT back to SUPER ROM menu (F8) */
     if (!vt_interact_press_key(handle, "f8")) {
         return false;
     }
-    Sleep(300);
+    Sleep(500);
     if (!vt_interact_press_key(handle, "f8")) {
         return false;
     }
-    Sleep(300);
+    Sleep(500);
 
     /* Exit SUPER ROM to main NEC menu (F8) */
     if (!vt_interact_press_key(handle, "f8")) {
         return false;
     }
-    Sleep(300);
+    Sleep(1000);  /* Wait for filesystem to update after exiting SUPER ROM */
 
     return true;
 }
@@ -150,22 +159,21 @@ static bool load_and_verify(const char* filename, const char* expected_content) 
     if (!vt_interact_menu_navigate(handle, 3, 0)) {
         return false;
     }
+    Sleep(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(500);
-
-    /* Launch THOUGHT via F3 */
-    if (!vt_interact_press_key(handle, "f3")) {
-        return false;
-    }
-    Sleep(500);
+    Sleep(1000);  /* Wait for THOUGHT to fully load */
 
     /* Load the saved outline by typing filename and ENTER */
     if (!vt_interact_type_text(handle, filename, true)) {
         return false;
     }
     Sleep(500);
+    if (!vt_interact_press_key(handle, "enter")) {
+        return false;
+    }
+    Sleep(1000);  /* Wait for save to complete */
 
     /* Verify content via screen memory */
     if (!verify_outline_content(expected_content)) {
@@ -176,15 +184,12 @@ static bool load_and_verify(const char* filename, const char* expected_content) 
     if (!vt_interact_press_key(handle, "f8")) {
         return false;
     }
-    Sleep(300);
     if (!vt_interact_press_key(handle, "f8")) {
         return false;
     }
-    Sleep(300);
     if (!vt_interact_press_key(handle, "f8")) {
         return false;
     }
-    Sleep(300);
 
     return true;
 }
@@ -235,37 +240,46 @@ void test_thought_file_save(void) {
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_set_model(handle, "pc8201"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_load_rom(handle), vt_interact_get_error());
-    Sleep(300);
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_launch_basic_from_menu(handle), vt_interact_get_error());
-    Sleep(300);
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "EXEC 62394"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(300);
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_exit_to_menu(handle), vt_interact_get_error());
-    Sleep(300);
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_menu_navigate(handle, 3, 0), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
     Sleep(500);
+    if (!vt_interact_press_key(handle, "enter")) {
+        return false;
+    }
+    Sleep(1000);  /* Wait for save to complete */
 
     TEST_ASSERT_TRUE_MESSAGE(launch_thought(), "Failed to launch THOUGHT");
     Sleep(500);
+    if (!vt_interact_press_key(handle, "enter")) {
+        return false;
+    }
+    Sleep(1000);  /* Wait for save to complete */
 
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, test_file, true), vt_interact_get_error());
+    /* Type filename without extension (THOUGHT adds it automatically) */
+    if (!vt_interact_type_text(handle, test_file, false)) {
+        return false;
+    }
+    Sleep(500);
+    if (!vt_interact_press_key(handle, "enter")) {
+        return false;
+    }
     Sleep(500);
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Test Heading"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(300);
 
     /* Save to RAM filesystem, verify in menu, load and verify content */
     TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, "Test Heading"), "Outline save/load failed");
 
     /* Exit SUPER ROM */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
-    Sleep(300);
 }
 
 void test_thought_file_load(void) {
@@ -293,38 +307,44 @@ void test_thought_file_load(void) {
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_set_model(handle, "pc8201"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_load_rom(handle), vt_interact_get_error());
-    Sleep(300);
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_launch_basic_from_menu(handle), vt_interact_get_error());
-    Sleep(300);
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "EXEC 62394"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(300);
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_exit_to_menu(handle), vt_interact_get_error());
-    Sleep(300);
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_menu_navigate(handle, 3, 0), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
     Sleep(500);
+    if (!vt_interact_press_key(handle, "enter")) {
+        return false;
+    }
+    Sleep(1000);  /* Wait for save to complete */
 
     TEST_ASSERT_TRUE_MESSAGE(launch_thought(), "Failed to launch THOUGHT");
     Sleep(500);
+    if (!vt_interact_press_key(handle, "enter")) {
+        return false;
+    }
+    Sleep(1000);  /* Wait for save to complete */
 
     /* Create and save outline first */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, test_file, true), vt_interact_get_error());
     Sleep(500);
+    if (!vt_interact_press_key(handle, "enter")) {
+        return false;
+    }
+    Sleep(1000);  /* Wait for save to complete */
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Loaded Content"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(300);
 
     /* Save to RAM filesystem, verify in menu, load and verify content */
     TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, "Loaded Content"), "Outline save/load failed");
 
     /* Exit SUPER ROM */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
-    Sleep(300);
 }
 
 void test_thought_file_preserve_structure(void) {
@@ -352,27 +372,35 @@ void test_thought_file_preserve_structure(void) {
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_set_model(handle, "pc8201"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_load_rom(handle), vt_interact_get_error());
-    Sleep(300);
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_launch_basic_from_menu(handle), vt_interact_get_error());
-    Sleep(300);
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "EXEC 62394"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(300);
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_exit_to_menu(handle), vt_interact_get_error());
-    Sleep(300);
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_menu_navigate(handle, 3, 0), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
     Sleep(500);
+    if (!vt_interact_press_key(handle, "enter")) {
+        return false;
+    }
+    Sleep(1000);  /* Wait for save to complete */
 
     TEST_ASSERT_TRUE_MESSAGE(launch_thought(), "Failed to launch THOUGHT");
     Sleep(500);
+    if (!vt_interact_press_key(handle, "enter")) {
+        return false;
+    }
+    Sleep(1000);  /* Wait for save to complete */
 
     /* Create outline with structure */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, test_file, true), vt_interact_get_error());
     Sleep(500);
+    if (!vt_interact_press_key(handle, "enter")) {
+        return false;
+    }
+    Sleep(1000);  /* Wait for save to complete */
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Root 1"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
@@ -387,5 +415,4 @@ void test_thought_file_preserve_structure(void) {
 
     /* Exit SUPER ROM */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
-    Sleep(300);
 }

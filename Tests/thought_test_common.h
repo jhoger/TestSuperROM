@@ -81,47 +81,44 @@ static bool enter_thought(vt_interact_handle_t handle) {
     if (!vt_interact_menu_navigate(handle, 3, 0)) {
         return false;
     }
+    /* Press Enter to launch THOUGHT from SuperROM menu */
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(500);
-
-    /* Launch THOUGHT via F3 */
-    if (!vt_interact_press_key(handle, "f3")) {
-        return false;
-    }
-    Sleep(500);
+    Sleep(1000);  /* Wait for THOUGHT to fully load */
 
     return true;
 }
 
 /* Save outline to RAM filesystem and exit to main menu */
 static bool save_to_ram_filesystem(vt_interact_handle_t handle, const char* filename) {
-    /* Save via F3 then Enter (saves to RAM filesystem by default) */
-    if (!vt_interact_press_key(handle, "f3")) {
-        return false;
-    }
-    Sleep(300);
-    if (!vt_interact_press_key(handle, "enter")) {
+    /* In THOUGHT Create mode:
+     * 1. Press F2 to save to RAM filesystem
+     * 2. Press F8 to exit THOUGHT back to SUPER ROM
+     * 3. Press F8 to exit SUPER ROM to main NEC menu
+     */
+
+    /* Save to RAM filesystem (F2 in Create mode) */
+    if (!vt_interact_press_key(handle, "f2")) {
         return false;
     }
     Sleep(500);
 
-    /* Exit THOUGHT back to SUPER ROM menu (F8 twice) */
+    /* Exit THOUGHT back to SUPER ROM menu (F8) */
     if (!vt_interact_press_key(handle, "f8")) {
         return false;
     }
-    Sleep(300);
+    Sleep(500);
     if (!vt_interact_press_key(handle, "f8")) {
         return false;
     }
-    Sleep(300);
+    Sleep(500);
 
     /* Exit SUPER ROM to main NEC menu (F8) */
     if (!vt_interact_press_key(handle, "f8")) {
         return false;
     }
-    Sleep(300);
+    Sleep(1000);  /* Wait for filesystem to update after exiting SUPER ROM */
 
     return true;
 }

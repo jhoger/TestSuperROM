@@ -85,23 +85,36 @@ static bool verify_ram_file_exists(const char* filename) {
     }
     printf("\n");
 
-    /* Search for filename in directory (8-char filename + 3-char extension format) */
-    size_t filename_len = strlen(filename);
+    /* THOUGHT stores files as 8-char name+extension (6+2 format with space padding) */
+    char full_filename[16];
+    snprintf(full_filename, sizeof(full_filename), "%s  CT", filename);
+    printf("Searching for filename pattern: '%s' (len=%zu)\n", full_filename, strlen(full_filename));
+
+    /* Search for filename in directory */
     for (int i = 0; i <= 88 - 8; i++) {
+        /* Debug: show what we're comparing */
+        char dir_slice[9];
+        memcpy(dir_slice, &dir_buffer[i], 8);
+        dir_slice[8] = '\0';
+        printf("Checking position %d: '%s' vs pattern '%s'\n", i, dir_slice, full_filename);
+
         bool match = true;
         for (int j = 0; j < 8; j++) {
             char dir_char = dir_buffer[i + j];
-            char file_char = (j < filename_len) ? filename[j] : ' ';
+            char file_char = (j < 8) ? full_filename[j] : ' ';
 
-            if (j >= filename_len && dir_char == ' ') {
+            if (j >= strlen(full_filename) && dir_char == ' ') {
                 continue;
             }
             if (dir_char != file_char) {
                 match = false;
+                printf("  Mismatch at j=%d: dir='%c' (0x%02X) vs file='%c' (0x%02X)\n",
+                       j, dir_char, (unsigned char)dir_char, file_char, (unsigned char)file_char);
                 break;
             }
         }
         if (match) {
+            printf("  MATCH found at position %d!\n", i);
             return true;
         }
     }
@@ -113,32 +126,30 @@ static bool launch_thought(void) {
     if (!vt_interact_menu_navigate(handle, 3, 0)) {
         return false;
     }
+    /* Press Enter to launch THOUGHT from SuperROM menu */
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(500);
-
-    if (!vt_interact_press_key(handle, "f3")) {
-        return false;
-    }
-    Sleep(500);
+    Sleep(1000);  /* Wait for THOUGHT to fully load */
 
     return true;
 }
 
 /* Save to RAM filesystem and exit to main menu */
 static bool save_to_ram_filesystem(const char* filename) {
-    /* Save via F3 then Enter (saves to RAM filesystem by default) */
-    if (!vt_interact_press_key(handle, "f3")) {
+    /* In THOUGHT Create mode:
+     * 1. Press F2 to save to RAM filesystem
+     * 2. Press F8 to exit THOUGHT back to SUPER ROM
+     * 3. Press F8 to exit SUPER ROM to main NEC menu
+     */
+
+    /* Save to RAM filesystem (F2 in Create mode) */
+    if (!vt_interact_press_key(handle, "f2")) {
         return false;
     }
     Sleep(500);
-    if (!vt_interact_press_key(handle, "enter")) {
-        return false;
-    }
-    Sleep(1000);
 
-    /* Exit THOUGHT back to SUPER ROM menu (F8 twice) */
+    /* Exit THOUGHT back to SUPER ROM menu (F8) */
     if (!vt_interact_press_key(handle, "f8")) {
         return false;
     }
@@ -152,7 +163,7 @@ static bool save_to_ram_filesystem(const char* filename) {
     if (!vt_interact_press_key(handle, "f8")) {
         return false;
     }
-    Sleep(1000);
+    Sleep(1000);  /* Wait for filesystem to update after exiting SUPER ROM */
 
     return true;
 }
@@ -270,16 +281,21 @@ void test_outline_creation(void) {
     /* Launch THOUGHT */
     TEST_ASSERT_TRUE_MESSAGE(launch_thought(), "Failed to launch THOUGHT");
 
-    /* Type filename and press enter to create */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, test_file, true), vt_interact_get_error());
+    /* Press Enter to enter Create mode with NEW FILE selected */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
+    Sleep(500);
+
+    /* Type filename without newline (THOUGHT adds the extension automatically) */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, test_file, false), vt_interact_get_error());
+    Sleep(500);
+
+    /* Press Enter to create the file */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
     Sleep(500);
 
     /* Create heading */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Outline Test"), vt_interact_get_error());
-    Sleep(300);
-
-    /* Exit Create mode to Review/Revise mode (F8) */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
     Sleep(300);
 
     /* Save to RAM filesystem, verify in menu, load and verify content */
@@ -338,8 +354,16 @@ void test_outline_deletion(void) {
     TEST_ASSERT_TRUE_MESSAGE(launch_thought(), "Failed to launch THOUGHT");
     Sleep(800);
 
-    /* Type filename */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, test_file, true), vt_interact_get_error());
+    /* Press Enter to enter Create mode with NEW FILE selected */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
+    Sleep(500);
+
+    /* Type filename without newline (THOUGHT adds the extension automatically) */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, test_file, false), vt_interact_get_error());
+    Sleep(500);
+
+    /* Press Enter to create the file */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
     Sleep(500);
 
     /* Create multiple entries */
@@ -410,8 +434,16 @@ void test_outline_expansion(void) {
     /* Launch THOUGHT */
     TEST_ASSERT_TRUE_MESSAGE(launch_thought(), "Failed to launch THOUGHT");
 
-    /* Type filename */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, test_file, true), vt_interact_get_error());
+    /* Press Enter to enter Create mode with NEW FILE selected */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
+    Sleep(500);
+
+    /* Type filename without newline (THOUGHT adds the extension automatically) */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, test_file, false), vt_interact_get_error());
+    Sleep(500);
+
+    /* Press Enter to create the file */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
     Sleep(500);
 
     /* Create parent with child */
@@ -480,8 +512,16 @@ void test_outline_collapse(void) {
     /* Launch THOUGHT */
     TEST_ASSERT_TRUE_MESSAGE(launch_thought(), "Failed to launch THOUGHT");
 
-    /* Type filename */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, test_file, true), vt_interact_get_error());
+    /* Press Enter to enter Create mode with NEW FILE selected */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
+    Sleep(500);
+
+    /* Type filename without newline (THOUGHT adds the extension automatically) */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, test_file, false), vt_interact_get_error());
+    Sleep(500);
+
+    /* Press Enter to create the file */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
     Sleep(500);
 
     /* Create parent with child */

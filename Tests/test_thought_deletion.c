@@ -124,8 +124,8 @@ static bool launch_thought(void) {
 static bool save_to_ram_filesystem(const char* filename) {
     /* In THOUGHT Create mode:
      * 1. Press F2 to save to RAM filesystem
-     * 2. Press F8 to exit THOUGHT back to SUPER ROM
-     * 3. Press F8 to exit SUPER ROM to main NEC menu
+     * 2. Press Shift-F5 to exit THOUGHT back to SUPER ROM
+     * 3. Press Shift-F5 to exit SUPER ROM to main NEC menu
      */
 
     /* Save to RAM filesystem (F2 in Create mode) */
@@ -134,18 +134,18 @@ static bool save_to_ram_filesystem(const char* filename) {
     }
     Sleep(500);
 
-    /* Exit THOUGHT back to SUPER ROM menu (F8) */
-    if (!vt_interact_press_key(handle, "f8")) {
+    /* Exit THOUGHT back to SUPER ROM menu (Shift-F5) */
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
     Sleep(500);
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
     Sleep(500);
 
-    /* Exit SUPER ROM to main NEC menu (F8) */
-    if (!vt_interact_press_key(handle, "f8")) {
+    /* Exit SUPER ROM to main NEC menu (Shift-F5) */
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
     Sleep(1000);  /* Wait for filesystem to update after exiting SUPER ROM */
@@ -183,13 +183,13 @@ static bool load_and_verify(const char* filename, const char* expected_content) 
     }
 
     /* Exit THOUGHT */
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
 
@@ -282,12 +282,36 @@ void test_thought_delete_heading(void) {
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Delete Me"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
+    Sleep(200);
 
-    /* Save to RAM filesystem, verify in menu, load and verify content */
+    /* Exit Create mode to Review/Revise */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
+    Sleep(500);
+
+    /* Move to "Delete Me" (it's the second line) */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "down"), vt_interact_get_error());
+    Sleep(200);
+
+    /* Delete the heading: 1st CTRL DEL BKSP blanks it, 2nd removes it */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "ctrl del bksp"), vt_interact_get_error());
+    Sleep(200);
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "ctrl del bksp"), vt_interact_get_error());
+    Sleep(200);
+    /* Confirm deletion */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, "y", true), vt_interact_get_error());
+    Sleep(500);
+
+    /* Verify "Delete Me" is gone and "Keep This" remains */
+    char screen[512];
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_get_screen_dump(handle, screen, sizeof(screen)), "Failed to get screen dump");
+    TEST_ASSERT_NULL(strstr(screen, "Delete Me"));
+    TEST_ASSERT_NOT_NULL(strstr(screen, "Keep This"));
+
+    /* Save and verify persistence */
     TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, "Keep This"), "Outline save/load failed");
 
     /* Exit SUPER ROM */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
 }
 
 /* Test: Delete section with children */
@@ -356,12 +380,41 @@ void test_thought_delete_section_with_children(void) {
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "right"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Child"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
+    Sleep(200);
 
-    /* Save to RAM filesystem, verify in menu, load and verify content */
-    TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, "Parent"), "Outline save/load failed");
+    /* Exit Create mode to Review/Revise */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
+    Sleep(500);
+
+    /* Move to "Parent" (it's the first line) */
+    /* Cursor should already be at top, but let's ensure it's on Parent */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "up"), vt_interact_get_error());
+    Sleep(200);
+
+    /* Delete the section: 1st CTRL DEL BKSP blanks it, 2nd removes it */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "ctrl del bksp"), vt_interact_get_error());
+    Sleep(200);
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "ctrl del bksp"), vt_interact_get_error());
+    Sleep(200);
+    /* Confirm deletion */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, "y", true), vt_interact_get_error());
+    Sleep(500);
+
+    /* Verify both "Parent" and "Child" are gone */
+    char screen[512];
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_get_screen_dump(handle, screen, sizeof(screen)), "Failed to get screen dump");
+    TEST_ASSERT_NULL(strstr(screen, "Parent"));
+    TEST_ASSERT_NULL(strstr(screen, "Child"));
+
+    /* Save and verify persistence: nothing should remain */
+    TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, ""), "Outline save/load failed");
+    char screen_reload[512];
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_get_screen_dump(handle, screen_reload, sizeof(screen_reload)), "Failed to get screen dump");
+    TEST_ASSERT_NULL(strstr(screen_reload, "Parent"));
+    TEST_ASSERT_NULL(strstr(screen_reload, "Child"));
 
     /* Exit SUPER ROM */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
 }
 
 /* Test: Delete multiple headings */
@@ -427,16 +480,57 @@ void test_thought_delete_multiple_headings(void) {
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
     Sleep(200);
 
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Delete Me 1"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
+    Sleep(200);
+
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Keep 2"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
+    Sleep(200);
+
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Delete Me 2"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
     Sleep(200);
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Keep 3"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
 
-    /* Save to RAM filesystem, verify in menu, load and verify content */
+    /* Exit Create mode to Review/Revise */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
+    Sleep(500);
+
+    /* Delete "Delete Me 1" (second line) */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "down"), vt_interact_get_error());
+    Sleep(200);
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "ctrl del bksp"), vt_interact_get_error());
+    Sleep(200);
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "ctrl del bksp"), vt_interact_get_error());
+    Sleep(200);
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, "y", true), vt_interact_get_error());
+    Sleep(500);
+
+    /* Delete "Delete Me 2" (now it should be the second line again) */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "down"), vt_interact_get_error());
+    Sleep(200);
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "ctrl del bksp"), vt_interact_get_error());
+    Sleep(200);
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "ctrl del bksp"), vt_interact_get_error());
+    Sleep(200);
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, "y", true), vt_interact_get_error());
+    Sleep(500);
+
+    /* Verify "Delete Me" items are gone and "Keep" items remain */
+    char screen[512];
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_get_screen_dump(handle, screen, sizeof(screen)), "Failed to get screen dump");
+    TEST_ASSERT_NULL(strstr(screen, "Delete Me 1"));
+    TEST_ASSERT_NULL(strstr(screen, "Delete Me 2"));
+    TEST_ASSERT_NOT_NULL(strstr(screen, "Keep 1"));
+    TEST_ASSERT_NOT_NULL(strstr(screen, "Keep 2"));
+    TEST_ASSERT_NOT_NULL(strstr(screen, "Keep 3"));
+
+    /* Save and verify persistence */
     TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, "Keep 1"), "Outline save/load failed");
 
     /* Exit SUPER ROM */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
 }

@@ -135,17 +135,17 @@ static bool save_to_ram_filesystem(const char* filename) {
     Sleep(500);
 
     /* Exit THOUGHT back to SUPER ROM menu (F8) */
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
     Sleep(500);
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
     Sleep(500);
 
     /* Exit SUPER ROM to main NEC menu (F8) */
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
     Sleep(1000);  /* Wait for filesystem to update after exiting SUPER ROM */
@@ -183,13 +183,13 @@ static bool load_and_verify(const char* filename, const char* expected_content) 
     }
 
     /* Exit THOUGHT */
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
 
@@ -289,7 +289,7 @@ void test_thought_view_hide_heading(void) {
     TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, "Visible"), "Outline save/load failed");
 
     /* Exit SUPER ROM */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
 }
 
 /* Test: Show a hidden heading using F3 */
@@ -364,7 +364,7 @@ void test_thought_view_show_heading(void) {
     TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, "Main"), "Outline save/load failed");
 
     /* Exit SUPER ROM */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
 }
 
 /* Test: Multiple hide/show operations */
@@ -441,5 +441,5 @@ void test_thought_view_multiple_hide_show(void) {
     TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, "Item 1"), "Outline save/load failed");
 
     /* Exit SUPER ROM */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
 }

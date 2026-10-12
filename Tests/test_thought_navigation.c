@@ -44,6 +44,17 @@ static void check_error(const char* msg) {
     }
 }
 
+/* Print a screen dump for debugging */
+static void print_screen_dump(vt_interact_handle_t handle) {
+    char response[4096];
+    if (vt_interact_send_command(handle, "sd", response, sizeof(response))) {
+        printf("\n=== SCREEN DUMP ===\n%s\n=== END SCREEN DUMP ===\n", response);
+    } else {
+        printf("Failed to get screen dump\n");
+    }
+    fflush(stdout);
+}
+
 /* Helper to verify outline content by reading screen memory */
 static bool verify_outline_content(const char* expected_text) {
     char screen_buffer[320];
@@ -102,12 +113,13 @@ static bool launch_thought(void) {
     if (!vt_interact_menu_navigate(handle, 3, 0)) {
         return false;
     }
-    Sleep(500);
+    /* Press Enter to launch THOUGHT from SuperROM menu */
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    Sleep(500);
 
+    /* Press F3 to enter Create mode */
     if (!vt_interact_press_key(handle, "f3")) {
         return false;
     }
@@ -115,7 +127,7 @@ static bool launch_thought(void) {
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    Sleep(1000);  /* Wait for THOUGHT to fully load */
 
     return true;
 }
@@ -132,23 +144,24 @@ static bool save_to_ram_filesystem(const char* filename) {
     if (!vt_interact_press_key(handle, "f2")) {
         return false;
     }
-    Sleep(500);
+    Sleep(1000);  /* Wait for save to complete */
+    print_screen_dump(handle);  /* Show screen after F2 save */
 
     /* Exit THOUGHT back to SUPER ROM menu (F8) */
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
     Sleep(500);
-    if (!vt_interact_press_key(handle, "f8")) {
+    print_screen_dump(handle);  /* Show screen after exiting THOUGHT */
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
     Sleep(500);
-
-    /* Exit SUPER ROM to main NEC menu (F8) */
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
     Sleep(1000);  /* Wait for filesystem to update after exiting SUPER ROM */
+    print_screen_dump(handle);  /* Show screen after exiting SUPER ROM */
 
     return true;
 }
@@ -183,13 +196,13 @@ static bool load_and_verify(const char* filename, const char* expected_content) 
     }
 
     /* Exit THOUGHT */
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
 
@@ -247,51 +260,62 @@ void test_navigation_cursor_movement(void) {
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_launch_basic_from_menu(handle), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "EXEC 62394"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
+    Sleep(2000);
+    print_screen_dump(handle);  /* Show screen after EXEC 62394 */
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_exit_to_menu(handle), vt_interact_get_error());
+    Sleep(500);
+    print_screen_dump(handle);  /* Show screen after exiting to PC8201A Main Menu */
 
+    /* Navigate to SUPER ROM and enter it */
+    /* SUPER is at row 3 in PC8201A Main Menu */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_menu_navigate(handle, 3, 0), vt_interact_get_error());
+    Sleep(500);
+    print_screen_dump(handle);  /* Show screen before SUPER */
+
+    /* Enter SUPER ROM - this should load it if not already loaded */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
-    if (!vt_interact_press_key(handle, "enter")) {
-        return false;
-    }
-    Sleep(1000);  /* Wait for save to complete */
+    Sleep(1000);
+    print_screen_dump(handle);  /* Show screen after entering SUPER ROM */
 
-    TEST_ASSERT_TRUE_MESSAGE(launch_thought(), "Failed to launch THOUGHT");
-    Sleep(500);
-    if (!vt_interact_press_key(handle, "enter")) {
-        return false;
-    }
-    Sleep(1000);  /* Wait for save to complete */
+    /* From SuperROM Main Menu, F3 (Thought) enters File Pick */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f3"), vt_interact_get_error());
+    Sleep(1500);  /* Longer delay for screen to update */
+    print_screen_dump(handle);  /* Show screen in File Pick mode */
 
-    /* Type filename without extension (THOUGHT adds it automatically) */
+    /* Type filename and press enter to create the file in Create mode */
     if (!vt_interact_type_text(handle, test_file, false)) {
         return false;
     }
     Sleep(500);
+    print_screen_dump(handle);  /* Show screen after typing filename */
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(500);
+    Sleep(1000);  /* Wait for file creation */
+    print_screen_dump(handle);  /* Show screen after creating file */
 
     /* Create outline with multiple entries */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Line 1"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
     Sleep(200);
+    print_screen_dump(handle);  /* Show screen after Line 1 */
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Line 2"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
     Sleep(200);
+    print_screen_dump(handle);  /* Show screen after Line 2 */
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Line 3"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
+    Sleep(200);
+    print_screen_dump(handle);  /* Show screen after Line 3 */
 
     /* Save to RAM filesystem, verify in menu, load and verify content */
     TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, "Line 1"), "Outline save/load failed");
 
     /* Exit SUPER ROM */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
 }
 
 /* Test: View management (hide/show) */
@@ -366,5 +390,5 @@ void test_navigation_view_management(void) {
     TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, "Main Section"), "Outline save/load failed");
 
     /* Exit SUPER ROM */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
 }

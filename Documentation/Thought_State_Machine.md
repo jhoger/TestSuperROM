@@ -8,14 +8,14 @@ THOUGHT is an outline processor that manages hierarchical outlines containing he
 
 ### Important: Entering SuperROM and THOUGHT
 
-On the PC-8201A, you cannot enter SuperROM or Thought directly from the Main Menu using function keys. The correct paths are:
+On the PC-8201A, you cannot enter SuperROM or Thought directly from the PC8201A Main Menu using function keys. The correct paths are:
 
-1. **From Main Menu to SuperROM Menu:**
+1. **From PC8201A Main Menu to SuperROM Menu:**
    - Navigate to BASIC using arrow keys, press ENTER
    - At BASIC prompt, type `EXEC 62394` and press ENTER
    - Or if SuperROM is already installed (previously EXEC'd), navigate to "SUPER" in menu and press ENTER
 
-2. **From Main Menu to Thought (direct):**
+2. **From PC8201A Main Menu to Thought (direct):**
    - If a Thought file (`.CT`) already exists, navigate to it using arrow keys
    - Press ENTER to open the file directly into Thought
 
@@ -60,14 +60,15 @@ stateDiagram-v2
     PC8201A_Menu --> Thought_Create: Navigate to .CT file + ENTER
     
     SuperROM_Menu: SuperROM Menu
-    SuperROM_Menu --> PC8201A_Menu: Press F8 (exit)
+    SuperROM_Menu --> PC8201A_Menu: Press Shift+F5 (exit)
     
     SuperROM_Menu --> SuperROM_File_Pick: Press F3 (Thought)
     SuperROM_File_Pick: SuperROM File Pick
     
     SuperROM_File_Pick --> SuperROM_File_Pick: Type filename
-    SuperROM_File_Pick --> Thought_Create: Press ENTER on filename
-    SuperROM_File_Pick --> SuperROM_Menu: Press F8 (exit)
+    SuperROM_File_Pick --> Thought_Create: Press ENTER on NEW filename
+    SuperROM_File_Pick --> Thought_Review: Press ENTER on EXISTING filename
+    SuperROM_File_Pick --> PC8201A_Menu: Press Shift+F5 (exit)
     
     Thought_Create: Thought Create Mode
     Thought_Create --> Thought_Review: Press F8 or ENTER on empty line
@@ -78,7 +79,7 @@ stateDiagram-v2
     Thought_Create --> Thought_Create: F2 (Load from cassette)
     
     Document_Edit: Document Edit Mode
-    Document_Edit --> Thought_Review: Press F8 (exit to outline)
+    Document_Edit --> Thought_Create: Press Shift-F5 (exit to outline)
     Document_Edit --> Document_Edit: All TEXT editing keys
     
     Thought_Review: Thought Review/Revise Mode
@@ -90,24 +91,24 @@ stateDiagram-v2
     Thought_Review --> Thought_Review: F4 (Clone)
     Thought_Review --> Thought_Review: F5 (Drag)
     Thought_Review --> Thought_Review: F6 (Sort)
-    Thought_Review --> Thought_Review: F7 (Select range)
+    Thought_Review --> Select_Mode: Shift-F2 (Select)
     Thought_Review --> Document_Edit: Press ENTER on document reference
-    Thought_Review --> Thought_Print: Press PRINT (or F7 then F3)
-    Thought_Review --> SuperROM_Menu: Press F8 (exit)
+    Thought_Review --> Thought_Print: Press PRINT (or Shift-F3)
+    Thought_Review --> PC8201A_Menu: Shift-F5 (exit)
     Thought_Review --> Thought_Create: PASTE (first press)
     Thought_Review --> Thought_Create: SHIFT + F2 (Global hide)
     Thought_Review --> Thought_Review: SHIFT + F3 (Global show)
     
     Thought_Print: Thought Print Mode
     Thought_Print --> Thought_Print: F1 (Go - print)
-    Thought_Print --> Thought_Print: F2 (Output destination)
-    Thought_Print --> Thought_Print: F3 (Line spacing)
-    Thought_Print --> Thought_Print: F4 (Page pause)
-    Thought_Print --> Thought_Print: F5 (CRLF)
-    Thought_Print --> Thought_Print: F6 (Set defaults)
-    Thought_Print --> Thought_Print: F7 (Advanced options)
-    Thought_Print --> Thought_Print: F8 (Exit)
-    Thought_Print --> Thought_Review: Press PRINT (cancel) or SHIFT + BREAK
+    Thought_Print --> Thought_Print: F2 (Lpp)
+    Thought_Print --> Thought_Print: F3 (Outp)
+    Thought_Print --> Thought_Print: F4 (Lnsp)
+    Thought_Print --> Thought_Print: F5 (Pause)
+    Thought_Print --> Thought_Print: Shift+F1 (CRLF)
+    Thought_Print --> Thought_Print: Shift+F2 (Set)
+    Thought_Print --> Thought_Print: Shift+F2 (Set)
+    Thought_Print --> Thought_Review: Esc or Shift+F5
     
     note right of PC8201A_Menu
       Main menu with BASIC, TEXT, TELCOM
@@ -132,12 +133,12 @@ stateDiagram-v2
     note right of Thought_Create
       ? indicates create mode
       Type text, ENTER creates heading
-      F8 on empty line exits to Review
+      Esc or Shift+F5 on empty line exits to Review
     end note
     
     note right of Thought_Review
       Main editing mode
-      F1-F8 function keys
+      F1-F5 (shifted or unshifted) function keys
       Arrow keys navigate
       PASTE enters Create mode
     end note
@@ -145,12 +146,12 @@ stateDiagram-v2
     note right of Thought_Print
       Configure print settings
       PRINT to execute
-      F8 or SHIFT + BREAK to cancel
+      Shift-F5 or SHIFT + BREAK to cancel
     end note
     
     note right of Document_Edit
       Full text editing
-      F8 returns to outline
+      Shift-F5 returns to outline that linked here
     end note
 ```
 
@@ -177,7 +178,7 @@ stateDiagram-v2
 | F2 | Write ROM |
 | F3 | Thought |
 | F4 | Lucid Data |
-| F8 | Exit to BIOS |
+| Shift+F5 | Exit to PC8201A Main Menu |
 | Arrow keys | Navigate menu |
 | ENTER | Select menu item |
 
@@ -227,7 +228,7 @@ stateDiagram-v2
 | F2 | Write ROM |
 | F3 | Thought |
 | F4 | Lucid Data |
-| F8 | Exit to Main Menu |
+| F8 | Exit to PC8201A Main Menu |
 
 ---
 
@@ -242,7 +243,7 @@ stateDiagram-v2
 | Event | Action | Target State |
 |-------|--------|--------------|
 | Type filename + ENTER | Load/create outline | Thought Create |
-| Press F8 | Exit | SuperROM Menu |
+| Press Shift+F5 | Exit | SuperROM Menu |
 | Press SHIFT + BREAK | Exit | SuperROM Menu |
 
 **Key Interpretation**:
@@ -250,7 +251,7 @@ stateDiagram-v2
 |-----|----------|
 | Alphanumeric | Type filename |
 | ENTER | Load/create file |
-| F8 | Exit |
+| Shift+F5 | Exit |
 | SHIFT + BREAK | Exit |
 
 ---
@@ -267,9 +268,9 @@ stateDiagram-v2
 **Exiting Transitions**:
 | Event | Action | Target State |
 |-------|--------|--------------|
-| Press F8 on empty line | Exit to Review | Thought Review |
+| Press Esc or Shift+F5 on empty line | Exit to Review | Thought Review |
 | Press ENTER on empty line | Exit to Review | Thought Review |
-| Type filename + ENTER | Create/edit document | Document Edit |
+| Type XXXXXX.DO + ENTER | Create/edit document | Document Edit |
 | Press F2 | Load from cassette | Thought Create (loads outline) |
 | Arrow keys | Move create window | Thought Create (same state) |
 | TAB | Change indent level | Thought Create (same state) |
@@ -280,7 +281,7 @@ stateDiagram-v2
 | `?` | Cursor indicator | Shows create mode |
 | Alphanumeric | Type heading text | Creates heading on ENTER |
 | ENTER | Create entry | On text; exits to Review on empty |
-| F8 | Exit/Enter | On text: create entry; On empty: exit to Review |
+| Shift+F5 | Exit/Enter | On text: create entry; On empty: exit to Review |
 | UP/DOWN | Move create window | Navigate outline |
 | LEFT | Reduce indent | Move left one level |
 | RIGHT | Increase indent | Move right one level |
@@ -313,18 +314,18 @@ stateDiagram-v2
 | Event | Action | Target State |
 |-------|--------|--------------|
 | Press ENTER on line | Enter Create mode | Thought Create |
-| Press F8 | Exit to SuperROM | SuperROM Menu |
+| Press Shift+F5 | Exit to PC8201A_Menu | SuperROM Menu |
 | Press F1 | Find text | Thought Review (same state) |
 | Press F2 | Hide children | Thought Review (same state) |
 | Press F3 | Show children | Thought Review (same state) |
 | Press F4 | Clone | Thought Review (same state) |
 | Press F5 | Drag | Drag Mode (state) |
 | Press F6 | Sort | Thought Review (same state) |
-| Press F7 | Select range | Select Mode (state) |
-| Press ENTER on document | Edit document | Document Edit |
+| Press Shift+F2 | Select range | Select Mode (state) |
+| Shift+F1 on document reference | Edit document | Document Edit |
 | Press PRINT | Enter Print mode | Thought Print |
 | SHIFT+F2 | Global hide | Thought Review (same state) |
-| SHIFT+F3 | Global show | Thought Review (same state) |
+| SHIFT+F3 | Global show | Thought Print |
 | PASTE | Enter Create mode | Thought Create |
 | Arrow keys | Navigate | Thought Review (same state) |
 
@@ -348,13 +349,14 @@ stateDiagram-v2
 | F1 | Find text | Search outline |
 | F2 | Hide children | Collapse subtree |
 | F3 | Show children | Expand subtree |
-| SHIFT+F3 | Global show | Expand all |
+| SHIFT+F3 | Print | Print Mode |
+| Print | Print | Print Mode |
 | SHIFT+F2 | Global hide | Hide all but root |
 | F4 | Clone | Create duplicate |
 | F5 | Drag | Enter drag mode |
-| F6 | Sort | Sort children |
-| F7 | Select | Select range |
-| F8 | Exit | To SuperROM |
+| Shift+F1 | Jump to Document | Jump to Document If Document |
+| Shift+F2 | Select | Select range |
+| Shift+F5 | Exit | To PC8201A_Menu |
 | ENTER | Create | Enter Create mode |
 | PASTE | Paste | Enter Create mode |
 
@@ -362,7 +364,7 @@ stateDiagram-v2
 
 ### 6. Drag Mode State
 
-**Description**: Entered from Review mode via F5 (Drag). The dragged entry is marked with `--`.
+**Description**: Entered from Review mode via F5 (Drag). The dragged entry is marked with `↕` (the character code is different on the PC8201A).
 
 **Entering**:
 - From Thought Review via F5 (Drag)
@@ -388,20 +390,22 @@ stateDiagram-v2
 
 ### 7. Select Mode State
 
-**Description**: Entered from Review mode via F7 (Select). Range is shown in reverse video.
+**Description**: Entered from Review mode via Shift+F2 (Select). Range is shown in reverse video.
 
 **Entering**:
-- From Thought Review via F7 (Select)
+- From Thought Review via Shift+F2 (Select)
 
 **Exiting Transitions**:
 | Event | Action | Target State |
 |-------|--------|--------------|
 | Press ENTER | Exit select | Thought Review |
 | ESC | Cancel select | Thought Review |
+| Shift+F5 | Cancel select | Thought Review |
 | Arrow keys | Extend selection | Select Mode (same state) |
+| F3 | Save | Save to Cassette |
 | F4 | Sort | Sort selection |
 | F5 | Copy | Copy selection |
-| F6 | Cut | Cut selection |
+| Shift+F1 | Cut | Cut selection |
 
 **Key Interpretation**:
 | Key | Function | Notes |
@@ -410,9 +414,11 @@ stateDiagram-v2
 | Arrow keys | Extend range | Select more/less |
 | ENTER | Exit | To Review |
 | ESC | Cancel | To Review |
+| Shift+F5 | Cancel | To Review |
+| F3 | Save | Save to Cassette |
 | F4 | Sort | Sort children |
 | F5 | Copy | Copy to buffer |
-| F6 | Cut | Cut to buffer |
+| Shift+F1 | Cut | Cut to buffer |
 
 ---
 
@@ -428,14 +434,14 @@ stateDiagram-v2
 **Exiting Transitions**:
 | Event | Action | Target State |
 |-------|--------|--------------|
-| Press F8 | Exit to outline | Thought Review |
-| SHIFT + BREAK | Exit to SuperROM | SuperROM Menu |
+| Press Shift+F5 | Exit to outline | Thought Review |
+| SHIFT + BREAK | Exit to PC8201A_Menu | PC8201A Main Menu |
 
 **Key Interpretation**:
 | Key | Function | Notes |
 |-----|----------|-------|
 | All TEXT keys | Edit text | Full text editing |
-| F8 | Exit | To outline Review |
+| Shift+F5 | Exit | To outline Review |
 
 ---
 
@@ -450,29 +456,23 @@ stateDiagram-v2
 **Exiting Transitions**:
 | Event | Action | Target State |
 |-------|--------|--------------|
-| Press F8 | Cancel and exit | Thought Review |
+| Press Shift+F5 | Cancel and exit | Thought Review |
 | Press SHIFT + BREAK | Cancel and exit | Thought Review |
+| Press ESC | Cancel and exit | Thought Review |
 | Press PRINT | Execute print | Thought Print (same state) |
 | F1 | Go (print) | Thought Print (executes) |
-| F2 | Output destination | Configuration |
-| F3 | Line spacing | Configuration |
-| F4 | Page pause | Configuration |
-| F5 | CRLF | Configuration |
-| F6 | Set defaults | Configuration |
-| F7 | Advanced options | Configuration |
 
 **Key Interpretation**:
 | Key | Function | Notes |
 |-----|----------|-------|
 | F1 | Go (print) | Execute print |
-| F2 | Output | Destination selection |
-| F3 | Line spacing | Toggle single/double |
-| F4 | Page pause | Toggle page breaks |
-| F5 | CRLF | Toggle line ending |
-| F6 | Set defaults | Save new defaults |
-| F7 | Advanced options | Margins, numbering, etc. |
-| F8 | Exit | Cancel and exit |
-| PRINT | Cancel | Exit to Review |
+| F2 | Lpp | Lines-Per-Page Configuration |
+| F3 | Outp | Output Device Configuration |
+| F4 | Line spacing | Toggle 1 or 2 |
+| F5 | Page pause | Pause at each page |
+| Shift+F1 | CRLF | Toggle line ending |
+| Shift+F2 | Set defaults | Save new defaults |
+| Shift+F5 | Exit | Cancel and exit |
 
 ---
 
@@ -487,24 +487,24 @@ The following table shows all transitions between states:
 | PC8201A_Menu | Navigate to .CT file + ENTER | Thought_Create |
 | BASIC_Prompt | EXEC 62394 | SuperROM_Menu |
 | SuperROM_Menu | F3 | SuperROM_File_Pick |
-| SuperROM_Menu | F8 | PC8201A_Menu |
+| SuperROM_Menu | Shift+F5 | PC8201A_Menu |
 | SuperROM_File_Pick | ENTER on filename | Thought_Create |
-| SuperROM_File_Pick | F8 | SuperROM_Menu |
-| Thought_Create | F8 on empty line | Thought_Review |
+| SuperROM_File_Pick | Shift+F5 | PC8201A_Menu |
+| Thought_Create | Shift+F5 on empty line | Thought_Review |
 | Thought_Create | ENTER on empty line | Thought_Review |
 | Thought_Create | Type .DO + ENTER | Document_Edit |
 | Thought_Create | Arrow keys | Thought_Create |
 | Thought_Create | TAB | Thought_Create |
 | Thought_Create | F2 | Thought_Create (load) |
-| Document_Edit | F8 | Thought_Review |
+| Document_Edit | Shift+F5 | Thought_Review |
 | Thought_Review | ENTER | Thought_Create |
-| Thought_Review | F8 | SuperROM_Menu |
+| Thought_Review | Shift+F5 | PC8201A_Menu |
 | Thought_Review | F5 | Drag Mode |
-| Thought_Review | F7 | Select Mode |
+| Thought_Review | Shift+F2 | Select Mode |
 | Thought_Review | ENTER on document | Document_Edit |
 | Thought_Review | PRINT | Thought_Print |
 | Thought_Review | Arrow keys | Thought_Review |
-| Thought_Review | F1-F4, F6, F7 | Thought_Review |
+| Thought_Review | F1-F4 | Thought_Review |
 | Thought_Review | SHIFT+F2/F3 | Thought_Review |
 | Drag Mode | ENTER | Thought_Review |
 | Drag Mode | ESC | Thought_Review |
@@ -512,11 +512,13 @@ The following table shows all transitions between states:
 | Select Mode | ENTER | Thought_Review |
 | Select Mode | ESC | Thought_Review |
 | Select Mode | Arrow keys | Select Mode |
-| Select Mode | F4-F6 | Thought_Review |
-| Thought_Print | F8 | Thought_Review |
+| Select Mode | F3-F4,Shift+F1,Shift+F3 | Thought_Review |
+| Thought_Print | Shift+F5 | Thought_Review |
 | Thought_Print | SHIFT + BREAK | Thought_Review |
 | Thought_Print | PRINT | Thought_Print (print) |
-| Thought_Print | F1-F7 | Thought_Print (configure) |
+| Thought_Print | F1 | Thought_Review (print) |
+| Thought_Print | F2-F5 | Thought_Print (configure) |
+| Thought_Print | Shift+F1,Shift+F2,Shift+F3 | Thought_Print (configure) |
 
 ---
 
@@ -564,19 +566,19 @@ The following table shows all transitions between states:
 
 ## Important Notes
 
-1. **Mode Entry**: Most modes are entered via function keys (F3, F5, F7, PRINT) from Review/Revise mode
+1. **Mode Entry**: Most modes are entered via function keys (F4,F5,Shift+F1,Shift+F2,Shift+F3 PRINT) from Review/Revise mode
 
-2. **Mode Exit**: F8 is the universal exit key for most modes
+2. **Mode Exit**: Shift+F5 is the universal exit key for most modes
 
 3. **Create vs Review**: The `?` vs wide bar cursor indicates the primary difference between Create and Review modes
 
 4. **Drag Mode**: Entered via F5 in Review mode, exits via ENTER or ESC
 
-5. **Select Mode**: Entered via F7 in Review mode, allows F4 (Sort), F5 (Copy), F6 (Cut)
+5. **Select Mode**: Entered via Shift+F2 in Review mode, allows F3(Cassette Save), F4 (Sort), F5 (Copy), Shift+F1 (Cut), Shift+F3 (Print)
 
 6. **Document Mode**: Separate mode for editing `.DO` files referenced in outline
 
-7. **Print Mode**: Full configuration before printing; can cancel with F8 or SHIFT + BREAK
+7. **Print Mode**: Full configuration before printing; can cancel with Shift+F5 or SHIFT + BREAK
 
 8. **Clone Behavior**: When cloning (`&` indicator), changes propagate to all clones
 

@@ -7,6 +7,10 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <direct.h>
+#define getcwd _getcwd
+#else
+#include <unistd.h>
 #endif
 
 /* Error message storage */
@@ -27,20 +31,21 @@ typedef struct vt_interact_t {
 static void get_rom_path(vt_interact_handle_t handle, char* buffer, size_t size) {
     vt_interact_internal_t* internal = (vt_interact_internal_t*)handle;
     if (!internal || !buffer || size == 0) return;
-    
-    const char* vt_path = getenv("VIRTUALT_PATH");
-    if (!vt_path) vt_path = ".";
-    
-    strncpy_s(buffer, size, vt_path, size - 1);
-    
-    /* Remove trailing backslash */
-    size_t len = strlen(buffer);
-    if (len > 0 && buffer[len - 1] == '\\') {
-        buffer[len - 1] = '\0';
+
+    /* Get current working directory (where the test executable runs from) */
+    if (!getcwd(buffer, size)) {
+        strncpy_s(buffer, size, ".", size - 1);
     }
-    
-    /* Append ROM path */
+
+    /* ROM is at ../../SUT/SUPNEC.bin relative to execution directory */
     strncat_s(buffer, size, "\\..\\..\\SUT\\SUPNEC.bin", size - strlen(buffer) - 1);
+
+    /* Resolve to absolute path */
+    char* resolved = _fullpath(NULL, buffer, size);
+    if (resolved) {
+        strncpy_s(buffer, size, resolved, size - 1);
+        free(resolved);
+    }
 }
 
 vt_interact_handle_t vt_interact_create(void) {

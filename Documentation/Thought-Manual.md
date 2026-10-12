@@ -1266,7 +1266,7 @@ Screen shows:
 ? XXXXXXXXXXXXXXXXXXXXXXXX
 
 6. Although it is not necessary for
-operation, if you press the LABEL key you
+operation, if you press the LABEL key (Shift-F4) you
 will see these function key labels:
 
 ```
@@ -2256,10 +2256,10 @@ If you are not in Review/Revise get there by
 just pressing ENTER .
 
 A. An overview of the function keys:
-I. Pressing the LABEL key shows:
+I. Pressing the LABEL key (Shift-F4) shows:
 
-Find Hide Show Cline Drag Txt Sel Exit
-1 2 3 4 5 6 7 8
+Find Hide Show Clone Drag Text Sel Exit
+F1  F2  F3  F4  F5  ShF1 ShF2 ShF5
 
 2. The functions are quite remarkable.
 They give you some excellent review and
@@ -2309,12 +2309,12 @@ moved to any location in the outline.
 Drag motion control keys are the same
 as for Create mode.
 
-f. F6 - Text: Accesses a text file when
+f. Shift-F1 - Text: Accesses a text file when
 the cursor is on the document line.
 (first line of the document appears on
 the outline)
 
-g. F7 -Select: Enables you to stretch
+g. Shift-F2 - Select: Enables you to stretch
 the cursor over a block of headlines in
 reverse video for cutting or copying or
 sorting.
@@ -2335,7 +2335,7 @@ outline, another outline, a Lucid
 spread sheet or a TEXT file.
 Original is left intact.
 
-(3.) F6 -Cut: Removes the blocked
+(3.) Cut: Removes the blocked
 area from the outline. Cut material
 
 Page T6-18 Review/Revise mode
@@ -2346,7 +2346,7 @@ area for pasting in the same
 outline, another outline, a Lucid
 spread sheet or a TEXT file.
 
-h. F8 - Exit: Returns to the Model 100
+h. Shift-F5 - Exit: Returns to the Model 100
 Main Menu.
 
 i. LABEL: Switches on or off the
@@ -2433,7 +2433,7 @@ Press the label key.
 Screen shows:
 
 Find Hide Show Clne Drag Text Sel Exit
-1 2 3 4 5 6 7 8
+F1  F2  F3  F4  F5  ShF1 ShF2 ShF5
 
 These keys are fun to use!
 
@@ -3419,11 +3419,11 @@ B. Steps:
 1. Go into Review/Revise mode. (Just press
 ENTER.)
 
-2. If you now press the LABEL key you will
+2. If you now press the LABEL key (Shift-F4) you will
 see these function keys:
 
 Find Hide Show Clne Drag Txt Sel Exit
-1 2 3 4 5 6 7 8
+F1  F2  F3  F4  F5  ShF1 ShF2 ShF5
 
 3. Place the wide bar cursor on any heading
 where you wish your block definition (or
@@ -3438,7 +3438,7 @@ Page T8-3 F7 Select
 
 
 Save Sort Copy Cut Exit
-1 2 3 4 5 6 7 8
+F1  F2  F3  F4  F5  ShF1 ShF2 ShF5
 
 5. Using your arrow keys or any of the
 cursor movement key combinations discussed
@@ -3486,7 +3486,7 @@ c. If you have made an "Unbalanced
 sclection" the screen message won’t
 appear until after you have pressed one
 of the appropriate function keys F4
-(Sort), F5 (Copy) or F6 (Cut).
+(Sort), F5 (Copy) or (S) Cut.
 
 d. The same rules apply for saving to
 cassette as for cutting. Generally you
@@ -3629,7 +3629,7 @@ chapter.
 Page T8-9 F7 Select
 
 
-V. F6 (Cut) Removes selected text
+V. (S) Cut Removes selected text
 A. You get it all
 
 1. Unlike copying, when you cut a section
@@ -4834,7 +4834,7 @@ When you press F7 (Set) you see these new
 function keys:
 
 Left Rt Ftr Indt Nbrs Last Xtra Exit
-1 2 3 4 5 6 7 8
+F1  F2  F3  F4  F5  ShF1 ShF2 ShF5
 
 The following pages provide a detailed
 discussion of each of these printing functions.

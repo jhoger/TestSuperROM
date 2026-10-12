@@ -317,11 +317,11 @@ void test_thought_complete_workflow(void) {
 
     /* Step 8: Exit THOUGHT back to SUPER ROM menu */
     /* Use F8 to exit to SUPER ROM menu */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
     printf("  F8 pressed (exit THOUGHT)!\n");
     fflush(stdout);
-    check_error("After press_key f8");
+    check_error("After press_key shift-f5");
 
     /* Wait for exit to complete */
 #ifdef _WIN32
@@ -331,7 +331,7 @@ void test_thought_complete_workflow(void) {
 #endif
 
     /* Step 9: Exit SUPER ROM to NEC main menu */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
 
     /* Wait for menu to load */
 #ifdef _WIN32
@@ -394,7 +394,7 @@ void test_thought_complete_workflow(void) {
     printf("Successfully verified outline content!\n");
 
     /* Type F8 to exit THOUGHT */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
 
     /* Wait for menu */
 #ifdef _WIN32
@@ -403,7 +403,7 @@ void test_thought_complete_workflow(void) {
     usleep(300000);
 #endif
 
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
 
     /* Wait for menu */
 #ifdef _WIN32

@@ -125,18 +125,18 @@ static bool save_to_ram_filesystem(const char* filename) {
     }
     Sleep(500);
 
-    /* Exit THOUGHT back to SUPER ROM menu (F8) */
-    if (!vt_interact_press_key(handle, "f8")) {
+    /* Exit THOUGHT back to SUPER ROM menu (Shift-F5) */
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
     Sleep(500);
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
     Sleep(500);
 
-    /* Exit SUPER ROM to main NEC menu (F8) */
-    if (!vt_interact_press_key(handle, "f8")) {
+    /* Exit SUPER ROM to main NEC menu (Shift-F5) */
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
     Sleep(1000);  /* Wait for filesystem to update after exiting SUPER ROM */
@@ -170,13 +170,13 @@ static bool load_and_verify(const char* filename, const char* expected_content) 
     }
 
     /* Exit THOUGHT */
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    if (!vt_interact_press_key(handle, "f8")) {
+    if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
 
@@ -262,13 +262,38 @@ void test_thought_drag_heading(void) {
     Sleep(200);
 
     /* Drag functionality - use F5 to drag */
+    /* Exit Create mode to Review/Revise */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
+    Sleep(500);
+
+    /* Move to "Item 2" (second line) */
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "down"), vt_interact_get_error());
+    Sleep(200);
+
+    /* Drag "Item 2" above "Item 1" */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f5"), vt_interact_get_error());
+    Sleep(200);
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "up"), vt_interact_get_error());
+    Sleep(200);
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
+    Sleep(500);
+
+    /* Verify "Item 2" is now first and "Item 1" is second */
+    char screen[512];
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_get_screen_dump(handle, screen, sizeof(screen)), "Failed to get screen dump");
+
+    /* We check if "Item 2" appears before "Item 1" in the dump */
+    char *pos2 = strstr(screen, "Item 2");
+    char *pos1 = strstr(screen, "Item 1");
+    TEST_ASSERT_NOT_NULL(pos2);
+    TEST_ASSERT_NOT_NULL(pos1);
+    TEST_ASSERT_TRUE_MESSAGE(pos2 < pos1, "Item 2 should be above Item 1 after drag");
 
     /* Save to RAM filesystem, verify in menu, load and verify content */
-    TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, "Item 1"), "Outline save/load failed");
+    TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, "Item 2"), "Outline save/load failed");
 
     /* Exit SUPER ROM */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
 }
 
 void test_thought_drag_section_with_children(void) {
@@ -328,14 +353,33 @@ void test_thought_drag_section_with_children(void) {
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Child"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
 
-    /* Drag using F5 */
+    /* Drag Parent and Child above Sibling */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f5"), vt_interact_get_error());
+    Sleep(200);
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "up"), vt_interact_get_error());
+    Sleep(200);
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
+    Sleep(500);
+
+    /* Verify "Parent" is now first and "Child" is still under it */
+    char screen[512];
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_get_screen_dump(handle, screen, sizeof(screen)), "Failed to get screen dump");
+
+    char *posP = strstr(screen, "Parent");
+    char *posC = strstr(screen, "Child");
+    char *posS = strstr(screen, "Sibling");
+    TEST_ASSERT_NOT_NULL(posP);
+    TEST_ASSERT_NOT_NULL(posC);
+    TEST_ASSERT_NOT_NULL(posS);
+    TEST_ASSERT_TRUE_MESSAGE(posP < posS, "Parent should be above Sibling after drag");
+    TEST_ASSERT_TRUE_MESSAGE(posP < posC, "Parent should be above Child");
+    TEST_ASSERT_TRUE_MESSAGE(posC < posS, "Child should be above Sibling");
 
     /* Save to RAM filesystem, verify in menu, load and verify content */
     TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, "Parent"), "Outline save/load failed");
 
     /* Exit SUPER ROM */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
 }
 
 void test_thought_drag_reorder_headings(void) {
@@ -402,5 +446,5 @@ void test_thought_drag_reorder_headings(void) {
     TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, "A"), "Outline save/load failed");
 
     /* Exit SUPER ROM */
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
 }

@@ -31,6 +31,12 @@
 #include "test_thought_deletion.h"
 #include "thought_test_common.h"
 
+/* External variables from Unity - used for command line filtering */
+#ifdef UNITY_USE_COMMAND_LINE_ARGS
+extern char* UnityOptionIncludeNamed;
+extern char* UnityOptionExcludeNamed;
+#endif
+
 /* Test function declarations */
 
 /* Outline module tests */
@@ -105,6 +111,28 @@ void tearDown(void) {
     Sleep(500);
 }
 
+/* Helper macro to conditionally run a test based on filter */
+#ifdef UNITY_USE_COMMAND_LINE_ARGS
+#define RUN_TEST_IF_MATCH(test_func) \
+    do { \
+        const char* test_name = #test_func; \
+        Unity.CurrentTestName = test_name; \
+        Unity.CurrentTestLineNumber = __LINE__; \
+        if (UnityTestMatches()) { \
+            UnityDefaultTestRun(test_func, test_name, __LINE__); \
+        } else { \
+            Unity.NumberOfTests++; \
+            if (UnityOptionIncludeNamed) { \
+                UnityPrint("IGNORE "); \
+                UnityPrint(test_name); \
+                UNITY_OUTPUT_CHAR('\n'); \
+            } \
+        } \
+    } while (0)
+#else
+#define RUN_TEST_IF_MATCH(test_func) RUN_TEST(test_func)
+#endif
+
 int main(int argc, char** argv) {
     /* Parse command line arguments for test filtering */
     UnityParseOptions(argc, argv);
@@ -113,39 +141,39 @@ int main(int argc, char** argv) {
     UNITY_BEGIN();
 
     /* Run all registered tests (only those matching filter if provided) */
-    RUN_TEST(test_outline_creation);
-    RUN_TEST(test_outline_deletion);
-    RUN_TEST(test_outline_expansion);
-    RUN_TEST(test_outline_collapse);
-    RUN_TEST(test_navigation_cursor_movement);
-    RUN_TEST(test_navigation_view_management);
-    RUN_TEST(test_thought_mode_create_enter);
-    RUN_TEST(test_thought_mode_create_to_review);
-    RUN_TEST(test_thought_mode_visual_indicators);
-    RUN_TEST(test_thought_hierarchy_parent_child);
-    RUN_TEST(test_thought_hierarchy_deep_nesting);
-    RUN_TEST(test_thought_hierarchy_siblings);
-    RUN_TEST(test_thought_document_reference);
-    RUN_TEST(test_thought_clone_reference);
-    RUN_TEST(test_thought_multiple_documents);
-    RUN_TEST(test_thought_drag_heading);
-    RUN_TEST(test_thought_drag_section_with_children);
-    RUN_TEST(test_thought_drag_reorder_headings);
-    RUN_TEST(test_thought_clone_heading);
-    RUN_TEST(test_thought_clone_section_with_children);
-    RUN_TEST(test_thought_clone_and_modify);
-    RUN_TEST(test_thought_file_save);
-    RUN_TEST(test_thought_file_load);
-    RUN_TEST(test_thought_file_preserve_structure);
-    RUN_TEST(test_thought_create_single_heading);
-    RUN_TEST(test_thought_create_multiple_headings);
-    RUN_TEST(test_thought_create_nested_headings);
-    RUN_TEST(test_thought_view_hide_heading);
-    RUN_TEST(test_thought_view_show_heading);
-    RUN_TEST(test_thought_view_multiple_hide_show);
-    RUN_TEST(test_thought_delete_heading);
-    RUN_TEST(test_thought_delete_section_with_children);
-    RUN_TEST(test_thought_delete_multiple_headings);
+    RUN_TEST_IF_MATCH(test_outline_creation);
+    RUN_TEST_IF_MATCH(test_outline_deletion);
+    RUN_TEST_IF_MATCH(test_outline_expansion);
+    RUN_TEST_IF_MATCH(test_outline_collapse);
+    RUN_TEST_IF_MATCH(test_navigation_cursor_movement);
+    RUN_TEST_IF_MATCH(test_navigation_view_management);
+    RUN_TEST_IF_MATCH(test_thought_mode_create_enter);
+    RUN_TEST_IF_MATCH(test_thought_mode_create_to_review);
+    RUN_TEST_IF_MATCH(test_thought_mode_visual_indicators);
+    RUN_TEST_IF_MATCH(test_thought_hierarchy_parent_child);
+    RUN_TEST_IF_MATCH(test_thought_hierarchy_deep_nesting);
+    RUN_TEST_IF_MATCH(test_thought_hierarchy_siblings);
+    RUN_TEST_IF_MATCH(test_thought_document_reference);
+    RUN_TEST_IF_MATCH(test_thought_clone_reference);
+    RUN_TEST_IF_MATCH(test_thought_multiple_documents);
+    RUN_TEST_IF_MATCH(test_thought_drag_heading);
+    RUN_TEST_IF_MATCH(test_thought_drag_section_with_children);
+    RUN_TEST_IF_MATCH(test_thought_drag_reorder_headings);
+    RUN_TEST_IF_MATCH(test_thought_clone_heading);
+    RUN_TEST_IF_MATCH(test_thought_clone_section_with_children);
+    RUN_TEST_IF_MATCH(test_thought_clone_and_modify);
+    RUN_TEST_IF_MATCH(test_thought_file_save);
+    RUN_TEST_IF_MATCH(test_thought_file_load);
+    RUN_TEST_IF_MATCH(test_thought_file_preserve_structure);
+    RUN_TEST_IF_MATCH(test_thought_create_single_heading);
+    RUN_TEST_IF_MATCH(test_thought_create_multiple_headings);
+    RUN_TEST_IF_MATCH(test_thought_create_nested_headings);
+    RUN_TEST_IF_MATCH(test_thought_view_hide_heading);
+    RUN_TEST_IF_MATCH(test_thought_view_show_heading);
+    RUN_TEST_IF_MATCH(test_thought_view_multiple_hide_show);
+    RUN_TEST_IF_MATCH(test_thought_delete_heading);
+    RUN_TEST_IF_MATCH(test_thought_delete_section_with_children);
+    RUN_TEST_IF_MATCH(test_thought_delete_multiple_headings);
 
     /* Run all tests */
     return UNITY_END();

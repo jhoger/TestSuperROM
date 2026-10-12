@@ -197,7 +197,7 @@ void test_thought_basic(void) {
 
     /* Exit BASIC to get to shell menu */
     printf("Exiting BASIC...\n");
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
     Sleep(1000);
     print_screen_dump(handle);
 
@@ -250,19 +250,19 @@ void test_thought_basic(void) {
 
     /* Exit THOUGHT */
     printf("Exiting THOUGHT...\n");
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
     Sleep(500);
     print_screen_dump(handle);
 
     /* Exit to main NEC menu */
     printf("Exiting to main menu...\n");
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
     Sleep(500);
     print_screen_dump(handle);
 
     /* Exit to THOUGHT menu */
     printf("Exiting to THOUGHT menu...\n");
-    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
+    TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
     Sleep(500);
     print_screen_dump(handle);
 

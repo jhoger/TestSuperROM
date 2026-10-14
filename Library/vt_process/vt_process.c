@@ -1,20 +1,23 @@
 /* VirtualT Process Library - Implementation */
 
 #include "vt_process.h"
+#include "platform_compat.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
-#ifdef _WIN32
-#include <windows.h>
-#include <jobapi.h>  /* For job objects */
+#if !PLATFORM_WINDOWS
+#include <unistd.h>
+#include <signal.h>
 #endif
 
 /* Error message storage - must be defined before functions that use it */
 static char last_error[256] = "";
 
-/* Job handle for terminating child processes when parent exits */
+/* Job handle for terminating child processes when parent exits (Windows only) */
+#if PLATFORM_WINDOWS
 static HANDLE job_handle = NULL;
+#endif
 
 typedef struct vt_process_t {
     VT_PROCESS_PID process_handle;
@@ -30,9 +33,12 @@ typedef struct vt_process_t {
 static uint16_t vt_process_find_port(vt_process_handle_t handle);
 static bool vt_process_create_process(const vt_process_config_t* config, VT_PROCESS_PID* process_handle, uint16_t port);
 static bool vt_process_destroy_process(VT_PROCESS_PID process_handle);
-static void vt_process_init_job_object(void);
 
-#ifdef _WIN32
+#if PLATFORM_WINDOWS
+static void vt_process_init_job_object(void);
+#endif
+
+#if PLATFORM_WINDOWS
 
 static bool vt_process_create_process(const vt_process_config_t* config, VT_PROCESS_PID* process_handle, uint16_t port) {
     char command_line[512];
@@ -44,13 +50,13 @@ static bool vt_process_create_process(const vt_process_config_t* config, VT_PROC
     if (!config || !process_handle) return false;
 
     if (config->virtualt_path) {
-        strncpy_s(virtualt_path, sizeof(virtualt_path), config->virtualt_path, sizeof(virtualt_path) - 1);
+        platform_strncpy_s(virtualt_path, sizeof(virtualt_path), config->virtualt_path, sizeof(virtualt_path) - 1);
     } else {
         char* env_path = getenv("VIRTUALT_PATH");
         if (env_path) {
-            strncpy_s(virtualt_path, sizeof(virtualt_path), env_path, sizeof(virtualt_path) - 1);
+            platform_strncpy_s(virtualt_path, sizeof(virtualt_path), env_path, sizeof(virtualt_path) - 1);
         } else {
-            strncpy_s(virtualt_path, sizeof(virtualt_path), "virtualt", sizeof(virtualt_path) - 1);
+            platform_strncpy_s(virtualt_path, sizeof(virtualt_path), "virtualt", sizeof(virtualt_path) - 1);
         }
     }
 
@@ -69,39 +75,37 @@ static bool vt_process_create_process(const vt_process_config_t* config, VT_PROC
 
     /* If virtualt_path ends with slash, append platform-specific executable name */
     if (last_char == '\\' || last_char == '/') {
-        #ifdef _WIN32
+        #if PLATFORM_WINDOWS
         const char* exe_name = "virtualt.exe";
         #else
         const char* exe_name = "virtualt";
         #endif
         if (path_len + strlen(exe_name) < sizeof(virtualt_path)) {
-            strncpy_s(virtualt_path + path_len, sizeof(virtualt_path) - path_len, exe_name, strlen(exe_name));
+            platform_strncat_s(virtualt_path + path_len, sizeof(virtualt_path) - path_len, exe_name, strlen(exe_name));
             /* Reset path_len after appending */
             path_len = strlen(virtualt_path);
         }
     } else {
         /* Path does not end with slash - check if it already has executable extension */
-        #ifdef _WIN32
-        if (path_len < 4 || _stricmp(virtualt_path + path_len - 4, ".exe") != 0) {
+        #if PLATFORM_WINDOWS
+        if (path_len < 4 || platform_stricmp(virtualt_path + path_len - 4, ".exe") != 0) {
             /* No .exe extension - check if there's a dot anywhere (indicating a file with extension) */
             char* last_dot = strrchr(virtualt_path, '.');
             if (last_dot == NULL || (last_dot && last_char == '.')) {
                 /* No dot or dot is at the end - treat as directory, append /virtualt.exe */
                 if (path_len + 12 < sizeof(virtualt_path)) {
-                    strncat_s(virtualt_path, sizeof(virtualt_path), "/virtualt.exe", 13);
+                    platform_strncat_s(virtualt_path, sizeof(virtualt_path), "/virtualt.exe", 13);
                 }
             } else {
                 /* Has a dot but not .exe - might be another extension, append .exe anyway */
                 if (path_len + 4 < sizeof(virtualt_path)) {
-                    strncat_s(virtualt_path, sizeof(virtualt_path), ".exe", 4);
+                    platform_strncat_s(virtualt_path, sizeof(virtualt_path), ".exe", 4);
                 }
             }
         }
         #else
-        if (path_len < 3 || _stricmp(virtualt_path + path_len - 3, ".so") != 0) {
-            /* On Linux, could be .so, .out, or no extension - treat as-is */
-            /* No extension check needed for simple cases */
-        }
+        /* On Linux, could be .so, .out, or no extension - treat as-is */
+        /* No extension check needed for simple cases */
         #endif
     }
 
@@ -117,15 +121,15 @@ static bool vt_process_create_process(const vt_process_config_t* config, VT_PROC
     if (last_slash) {
         size_t dir_len = last_slash - virtualt_path + 1;
         if (dir_len < sizeof(working_dir)) {
-            strncpy_s(working_dir, sizeof(working_dir), virtualt_path, dir_len);
+            platform_strncpy_s(working_dir, sizeof(working_dir), virtualt_path, dir_len);
             working_dir[dir_len] = '\0';
         } else {
             /* Directory path too long, use current directory */
-            GetCurrentDirectoryA(sizeof(working_dir), working_dir);
+            platform_get_current_dir(working_dir, sizeof(working_dir));
         }
     } else {
         /* No slash found, use current directory */
-        GetCurrentDirectoryA(sizeof(working_dir), working_dir);
+        platform_get_current_dir(working_dir, sizeof(working_dir));
     }
 
     /* Initialize job object if not already done (for child process cleanup) */
@@ -163,7 +167,7 @@ static bool vt_process_destroy_process(VT_PROCESS_PID process_handle) {
     bool terminated = TerminateProcess(process_handle, 0);
 
     /* Wait a moment for cleanup */
-    Sleep(200);
+    platform_sleep_ms(200);
 
     /* Wait for process to fully terminate */
     DWORD result = WaitForSingleObject(process_handle, 1000);
@@ -175,6 +179,19 @@ static bool vt_process_destroy_process(VT_PROCESS_PID process_handle) {
 
     CloseHandle(process_handle);
     return terminated;
+}
+
+static void vt_process_init_job_object(void) {
+    if (job_handle == NULL) {
+        /* Create a job object that kills processes when closed */
+        job_handle = CreateJobObject(NULL, NULL);
+        if (job_handle) {
+            /* Configure job to kill processes when job handle is closed */
+            JOBOBJECT_EXTENDED_LIMIT_INFORMATION info = {0};
+            info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+            SetInformationJobObject(job_handle, JobObjectExtendedLimitInformation, &info, sizeof(info));
+        }
+    }
 }
 
 #else
@@ -196,20 +213,6 @@ static bool vt_process_destroy_process(VT_PROCESS_PID process_handle) {
 
 #endif
 
-/* Initialize job object for child process cleanup */
-static void vt_process_init_job_object(void) {
-    if (job_handle == NULL) {
-        /* Create a job object that kills processes when closed */
-        job_handle = CreateJobObject(NULL, NULL);
-        if (job_handle) {
-            /* Configure job to kill processes when job handle is closed */
-            JOBOBJECT_EXTENDED_LIMIT_INFORMATION info = {0};
-            info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-            SetInformationJobObject(job_handle, JobObjectExtendedLimitInformation, &info, sizeof(info));
-        }
-    }
-}
-
 vt_process_handle_t vt_process_create(void) {
     vt_process_internal_t* handle = malloc(sizeof(vt_process_internal_t));
     if (!handle) return NULL;
@@ -228,10 +231,12 @@ void vt_process_destroy(vt_process_handle_t handle) {
     /* Cleanup socket subsystem */
     vt_socket_cleanup();
     /* Close job handle to kill any remaining child processes */
+#if PLATFORM_WINDOWS
     if (job_handle) {
         CloseHandle(job_handle);
         job_handle = NULL;
     }
+#endif
 }
 
 bool vt_process_launch(vt_process_handle_t handle, const vt_process_config_t* config) {
@@ -263,7 +268,7 @@ bool vt_process_launch(vt_process_handle_t handle, const vt_process_config_t* co
     internal->is_running = true;
 
     /* Give VirtualT a moment to start before waiting for ready */
-    Sleep(500);
+    platform_sleep_ms(500);
 
     return true;
 }
@@ -304,7 +309,7 @@ bool vt_process_wait_for_ready(vt_process_handle_t handle, uint32_t timeout_ms) 
             vt_socket_destroy(sock);
         }
 
-        Sleep(step);
+        platform_sleep_ms(step);
         elapsed += step;
     }
     vt_process_set_error("Wait for ready timed out - VirtualT socket not responding");
@@ -341,16 +346,23 @@ bool vt_process_terminate(vt_process_handle_t handle) {
     }
 
     /* Small delay to allow process to settle */
-#ifdef _WIN32
-    Sleep(100);
+#if PLATFORM_WINDOWS
+    platform_sleep_ms(100);
 #else
-    usleep(100000);
+    platform_sleep_us(100000);
 #endif
 
+#if PLATFORM_WINDOWS
     if (internal->process_handle) {
         vt_process_destroy_process(internal->process_handle);
         internal->process_handle = NULL;
     }
+#else
+    if (internal->process_handle) {
+        vt_process_destroy_process(internal->process_handle);
+        internal->process_handle = 0;
+    }
+#endif
 
     internal->is_running = false;
     internal->is_connected = false;
@@ -423,5 +435,5 @@ const char* vt_process_get_error(void) {
 }
 
 void vt_process_set_error(const char* msg) {
-    strncpy_s(last_error, sizeof(last_error), msg, sizeof(last_error) - 1);
+    platform_strncpy_s(last_error, sizeof(last_error), msg, sizeof(last_error) - 1);
 }

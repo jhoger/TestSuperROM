@@ -6,13 +6,10 @@
 #include "unity.h"
 #include "vt_process.h"
 #include "vt_socket.h"
+#include "platform_compat.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 /* Test fixtures */
 static vt_process_handle_t process_handle = NULL;
@@ -55,24 +52,27 @@ static void get_rom_path(char* buffer, size_t size) {
     
     size_t root_len = strlen(project_root);
     if (root_len + 1 + strlen(rom_filename) + 1 < size) {
-        strcpy_s(buffer, size, project_root);
+        platform_strcpy_s(buffer, size, project_root);
         if (buffer[root_len - 1] != '/') {
-            strncat_s(buffer, size, "/", size - strlen(buffer) - 1);
+            platform_strncat_s(buffer, size, "/", size - strlen(buffer) - 1);
         }
-        strncat_s(buffer, size, rom_filename, size - strlen(buffer) - 1);
+        platform_strncat_s(buffer, size, rom_filename, size - strlen(buffer) - 1);
     } else {
         /* Fallback to current directory method */
-        DWORD len = GetCurrentDirectoryA((DWORD)size, buffer);
+        char* cwd = platform_getcwd(buffer, size);
+        if (cwd == NULL) {
+            buffer[0] = '\0';
+        }
         const char* rom_filename = "SUT/SUPNEC.bin";
         size_t current_len = strlen(buffer);
         if (current_len > 0 && buffer[current_len - 1] != '/') {
-            strncat_s(buffer, size, "/", size - current_len - 1);
+            platform_strncat_s(buffer, size, "/", size - current_len - 1);
         }
-        strncat_s(buffer, size, rom_filename, size - strlen(buffer) - 1);
+        platform_strncat_s(buffer, size, rom_filename, size - strlen(buffer) - 1);
     }
 #else
     getcwd(buffer, size);
-    strncat_s(buffer, size, "/../../SUT/SUPNEC.bin", size - strlen(buffer) - 1);
+    platform_strncat_s(buffer, size, "/../../SUT/SUPNEC.bin", size - strlen(buffer) - 1);
 #endif
 }
 /* Test: Basic process creation and destruction */

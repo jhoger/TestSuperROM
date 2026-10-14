@@ -15,14 +15,16 @@ add_library(vt_socket STATIC
 # Include paths
 target_include_directories(vt_socket PUBLIC
     ${CMAKE_SOURCE_DIR}/Library/vt_socket
+    ${CMAKE_SOURCE_DIR}/Common
 )
 
-# Link Winsock on Windows
+# Link platform library and Winsock on Windows
 if(MSVC)
-    target_link_libraries(vt_socket ws2_32)
+    target_link_libraries(vt_socket platform_compat_windows ws2_32)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3")
     target_compile_definitions(vt_socket PRIVATE VT_SOCKET_TRACE)
 else()
+    target_link_libraries(vt_socket platform_compat_linux pthread)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
     target_compile_definitions(vt_socket PRIVATE VT_SOCKET_TRACE)
 endif()
@@ -210,9 +212,64 @@ target_include_directories(thought_integration_tests PRIVATE
 
 target_link_libraries(thought_integration_tests vt_interact vt_process vt_socket unity)
 
-# Simple process launch test executable
+# Simple process launch test executable (Windows only)
+if(MSVC)
 add_executable(test_process_launch
     Tests/test_process_launch.c
 )
 
-target_link_libraries(test_process_launch kernel32)
+target_link_libraries(test_process_launch vt_process vt_socket unity)
+endif()
+
+# ============================================================================
+# Platform Compatibility Library - Linux Implementation
+# ============================================================================
+
+# Linux platform implementations
+add_library(platform_compat_linux STATIC
+    Common/platform/string_compat_linux.c
+    Common/platform/file_compat_linux.c
+    Common/platform/sleep_linux.c
+    Common/platform/thread_linux.c
+    Common/platform/process_linux.c
+)
+target_include_directories(platform_compat_linux PUBLIC ${CMAKE_SOURCE_DIR}/Common)
+target_link_libraries(platform_compat_linux PUBLIC pthread)
+
+# ============================================================================
+# Platform Compatibility Library - Windows Implementation
+# ============================================================================
+
+# Windows platform implementations (for Windows builds only)
+if(MSVC)
+add_library(platform_compat_windows STATIC
+    Common/platform/string_compat_windows.c
+    Common/platform/file_compat_windows.c
+    Common/platform/sleep_windows.c
+    Common/platform/thread_windows.c
+    Common/platform/process_windows.c
+)
+target_include_directories(platform_compat_windows PUBLIC ${CMAKE_SOURCE_DIR}/Common)
+endif()
+
+# ============================================================================
+# Platform Compatibility Tests
+# ============================================================================
+
+add_executable(test_platform_compat
+    Tests/test_platform_compat.c
+)
+
+target_include_directories(test_platform_compat PRIVATE
+    ${CMAKE_SOURCE_DIR}/Common
+    ${CMAKE_SOURCE_DIR}/Tools/unity/src
+)
+
+target_link_libraries(test_platform_compat platform_compat_linux unity)
+
+# ============================================================================
+# Test executable for vt_process
+# ============================================================================
+
+# Link vt_process with platform library
+target_link_libraries(vt_process platform_compat_linux)

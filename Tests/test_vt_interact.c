@@ -7,13 +7,10 @@
 
 #include "unity.h"
 #include "vt_interact.h"
+#include "platform_compat.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 /* Test fixtures */
 static vt_interact_handle_t handle = NULL;
@@ -53,7 +50,7 @@ void tearDown(void) {
     }
     /* Small delay to allow VirtualT to fully terminate before next test starts */
 #ifdef _WIN32
-    Sleep(500);
+    platform_sleep_ms(500);
 #else
     usleep(500000);
 #endif
@@ -192,7 +189,7 @@ void test_interact_run_basic_program(void) {
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f8"), vt_interact_get_error());
 
     /* Give program time to execute */
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Wait for and verify LCD events */
     /* The program prints "TEST OK" which should generate lcdwrite events */
@@ -210,7 +207,7 @@ void test_interact_run_basic_program(void) {
                 break;
             }
         }
-        Sleep(50);  /* Small delay between polls */
+        platform_sleep_ms(50);  /* Small delay between polls */
     }
 
     TEST_ASSERT_TRUE_MESSAGE(found_output, "Expected LCD output event not received");

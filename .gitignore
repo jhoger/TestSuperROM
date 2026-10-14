@@ -38,6 +38,9 @@ __pycache__/
 Thumbs.db
 desktop.ini
 
+# AI
+.claude/
+
 # Test coverage
 *.gcov
 *.gcno
@@ -88,3 +91,4 @@ CMakeError.log
 *.ppm
 *.s
 *.out
+.aider*

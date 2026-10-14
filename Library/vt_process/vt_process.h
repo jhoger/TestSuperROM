@@ -27,11 +27,12 @@ extern "C" {
 #define VT_PROCESS_CONNECTION_FAIL  -5
 
 /* Platform-specific includes */
-#ifdef _WIN32
+#if PLATFORM_WINDOWS
     #include <windows.h>
     #define VT_PROCESS_PID HANDLE
 #else
     #include <sys/types.h>
+    #include <unistd.h>
     #define VT_PROCESS_PID pid_t
 #endif
 

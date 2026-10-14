@@ -4,6 +4,7 @@
  */
 
 #include "unity.h"
+#include "platform_compat.h"
 #include "thought_test_common.h"
 
 /* Test: Print format options */

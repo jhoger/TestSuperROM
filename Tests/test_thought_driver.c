@@ -8,6 +8,7 @@
 
 /* Unity framework */
 #include "unity.h"
+#include "platform_compat.h"
 #include "vt_interact.h"
 #include <stdlib.h>
 #include <string.h>
@@ -108,7 +109,7 @@ void tearDown(void) {
         vt_interact_destroy(handle);
         handle = NULL;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 }
 
 /* Helper macro to conditionally run a test based on filter */

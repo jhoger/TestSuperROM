@@ -13,6 +13,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "unity.h"
+#include "platform_compat.h"
 #include "vt_interact.h"
 #include <stdlib.h>
 #include <string.h>
@@ -102,20 +103,20 @@ static bool launch_thought(void) {
     if (!vt_interact_menu_navigate(handle, 3, 0)) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    platform_sleep_ms(1000);  /* Wait for save to complete */
 
     if (!vt_interact_press_key(handle, "f3")) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    platform_sleep_ms(1000);  /* Wait for save to complete */
 
     return true;
 }
@@ -132,23 +133,23 @@ static bool save_to_ram_filesystem(const char* filename) {
     if (!vt_interact_press_key(handle, "f2")) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Exit THOUGHT back to SUPER ROM menu (Shift-F5) */
     if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Exit SUPER ROM to main NEC menu (Shift-F5) */
     if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    Sleep(1000);  /* Wait for filesystem to update after exiting SUPER ROM */
+    platform_sleep_ms(1000);  /* Wait for filesystem to update after exiting SUPER ROM */
 
     return true;
 }
@@ -159,11 +160,11 @@ static bool load_and_verify(const char* filename, const char* expected_content) 
     if (!vt_interact_menu_navigate(handle, 3, 0)) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for THOUGHT to fully load */
+    platform_sleep_ms(1000);  /* Wait for THOUGHT to fully load */
 
     /* Load the saved outline by typing filename with extension and ENTER */
     char full_filename[16];
@@ -171,11 +172,11 @@ static bool load_and_verify(const char* filename, const char* expected_content) 
     if (!vt_interact_type_text(handle, full_filename, true)) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    platform_sleep_ms(1000);  /* Wait for save to complete */
 
     /* Verify content via screen memory */
     if (!verify_outline_content(expected_content)) {
@@ -252,28 +253,28 @@ void test_thought_delete_heading(void) {
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_menu_navigate(handle, 3, 0), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    platform_sleep_ms(1000);  /* Wait for save to complete */
 
     TEST_ASSERT_TRUE_MESSAGE(launch_thought(), "Failed to launch THOUGHT");
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    platform_sleep_ms(1000);  /* Wait for save to complete */
 
     /* Type filename without extension (THOUGHT adds it automatically) */
     if (!vt_interact_type_text(handle, test_file, false)) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Create multiple entries */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Keep This"), vt_interact_get_error());
@@ -286,7 +287,7 @@ void test_thought_delete_heading(void) {
 
     /* Exit Create mode to Review/Revise */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Move to "Delete Me" (it's the second line) */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "down"), vt_interact_get_error());
@@ -299,7 +300,7 @@ void test_thought_delete_heading(void) {
     Sleep(200);
     /* Confirm deletion */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, "y", true), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Verify "Delete Me" is gone and "Keep This" remains */
     char screen[512];
@@ -349,28 +350,28 @@ void test_thought_delete_section_with_children(void) {
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_menu_navigate(handle, 3, 0), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    platform_sleep_ms(1000);  /* Wait for save to complete */
 
     TEST_ASSERT_TRUE_MESSAGE(launch_thought(), "Failed to launch THOUGHT");
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    platform_sleep_ms(1000);  /* Wait for save to complete */
 
     /* Type filename without extension (THOUGHT adds it automatically) */
     if (!vt_interact_type_text(handle, test_file, false)) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Create parent with child */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Parent"), vt_interact_get_error());
@@ -384,7 +385,7 @@ void test_thought_delete_section_with_children(void) {
 
     /* Exit Create mode to Review/Revise */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Move to "Parent" (it's the first line) */
     /* Cursor should already be at top, but let's ensure it's on Parent */
@@ -398,7 +399,7 @@ void test_thought_delete_section_with_children(void) {
     Sleep(200);
     /* Confirm deletion */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, "y", true), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Verify both "Parent" and "Child" are gone */
     char screen[512];
@@ -452,28 +453,28 @@ void test_thought_delete_multiple_headings(void) {
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_menu_navigate(handle, 3, 0), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    platform_sleep_ms(1000);  /* Wait for save to complete */
 
     TEST_ASSERT_TRUE_MESSAGE(launch_thought(), "Failed to launch THOUGHT");
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    platform_sleep_ms(1000);  /* Wait for save to complete */
 
     /* Type filename without extension (THOUGHT adds it automatically) */
     if (!vt_interact_type_text(handle, test_file, false)) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Create multiple entries */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Keep 1"), vt_interact_get_error());
@@ -497,7 +498,7 @@ void test_thought_delete_multiple_headings(void) {
 
     /* Exit Create mode to Review/Revise */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Delete "Delete Me 1" (second line) */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "down"), vt_interact_get_error());
@@ -507,7 +508,7 @@ void test_thought_delete_multiple_headings(void) {
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "ctrl del bksp"), vt_interact_get_error());
     Sleep(200);
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, "y", true), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Delete "Delete Me 2" (now it should be the second line again) */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "down"), vt_interact_get_error());
@@ -517,7 +518,7 @@ void test_thought_delete_multiple_headings(void) {
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "ctrl del bksp"), vt_interact_get_error());
     Sleep(200);
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, "y", true), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Verify "Delete Me" items are gone and "Keep" items remain */
     char screen[512];

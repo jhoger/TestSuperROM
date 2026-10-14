@@ -12,12 +12,9 @@
 #define THOUGHT_TEST_COMMON_H
 
 #include "vt_interact.h"
+#include "platform_compat.h"
 #include <string.h>
 #include <stdio.h>
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 /* RAM filesystem directory starts at 0xF84F in VirtualT */
 #define VT_RAM_DIR_ADDRESS  0xF84F
@@ -85,7 +82,7 @@ static bool enter_thought(vt_interact_handle_t handle) {
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for THOUGHT to fully load */
+    platform_sleep_ms(1000);  /* Wait for THOUGHT to fully load */
 
     return true;
 }

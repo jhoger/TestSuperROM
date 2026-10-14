@@ -4,6 +4,7 @@
  */
 
 #include "unity.h"
+#include "platform_compat.h"
 #include "vt_interact.h"
 #include <stdlib.h>
 
@@ -46,7 +47,7 @@ void test_launch_and_terminate(void) {
     TEST_ASSERT_TRUE(vt_interact_load_rom(handle));
 
     /* Give it time to load */
-    Sleep(1000);
+    platform_sleep_ms(1000);
 
     /* Terminate */
     TEST_ASSERT_TRUE(vt_interact_terminate(handle));

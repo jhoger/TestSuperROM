@@ -1,16 +1,15 @@
 /* VirtualT Interact Library - Implementation */
 
 #include "vt_interact.h"
+#include "platform_compat.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdarg.h>
 
-#ifdef _WIN32
-#include <windows.h>
-#include <direct.h>
-#define getcwd _getcwd
-#else
+#if !PLATFORM_WINDOWS
 #include <unistd.h>
+#include <sys/stat.h>
 #endif
 
 /* Error message storage */
@@ -33,17 +32,18 @@ static void get_rom_path(vt_interact_handle_t handle, char* buffer, size_t size)
     if (!internal || !buffer || size == 0) return;
 
     /* Get current working directory (where the test executable runs from) */
-    if (!getcwd(buffer, size)) {
-        strncpy_s(buffer, size, ".", size - 1);
+    if (!platform_getcwd(buffer, size)) {
+        platform_strncpy_s(buffer, size, ".", size - 1);
     }
 
     /* ROM is at ../../SUT/SUPNEC.bin relative to execution directory */
-    strncat_s(buffer, size, "\\..\\..\\SUT\\SUPNEC.bin", size - strlen(buffer) - 1);
+    platform_strncat_s(buffer, size, "\\..\\..\\SUT\\SUPNEC.bin", size - strlen(buffer) - 1);
 
     /* Resolve to absolute path */
-    char* resolved = _fullpath(NULL, buffer, size);
+    char resolved_path[512];
+    char* resolved = platform_realpath(buffer, resolved_path);
     if (resolved) {
-        strncpy_s(buffer, size, resolved, size - 1);
+        platform_strncpy_s(buffer, size, resolved, size - 1);
         free(resolved);
     }
 }
@@ -268,7 +268,7 @@ bool vt_interact_get_lcd_event(vt_interact_handle_t handle, uint8_t* row, uint8_
                                 *col = (uint8_t)strtol(comma_in_parens + 1, NULL, 16);
 
                                 /* Copy character data after ) */
-                                strncpy_s(data, data_size, paren_close + 1, data_size - 1);
+                                platform_strncpy_s(data, data_size, paren_close + 1, data_size - 1);
                                 data[data_size - 1] = '\0';
 
                                 /* Restore characters */
@@ -382,7 +382,7 @@ bool vt_interact_type_line(vt_interact_handle_t handle, const char* line) {
     /* Small delay to allow keystrokes to be processed */
     if (result) {
 #ifdef _WIN32
-        Sleep(100);
+        platform_sleep_ms(100);
 #else
         usleep(100000);
 #endif
@@ -407,7 +407,7 @@ bool vt_interact_execute_program(vt_interact_handle_t handle) {
     /* Small delay to allow command to execute */
     if (result) {
 #ifdef _WIN32
-        Sleep(100);
+        platform_sleep_ms(100);
 #else
         usleep(100000);
 #endif
@@ -453,7 +453,7 @@ const char* vt_interact_get_error(void) {
 }
 
 static void vt_interact_set_error(const char* msg) {
-    strncpy_s(last_error, sizeof(last_error), msg, sizeof(last_error) - 1);
+    platform_strncpy_s(last_error, sizeof(last_error), msg, sizeof(last_error) - 1);
 }
 
 /* Logging function that always flushes */
@@ -530,11 +530,11 @@ static bool get_cursor_position(vt_interact_handle_t handle, uint8_t* x, uint8_t
 static int parse_rm_response(const char* response, uint8_t* buffer, size_t buffer_size) {
     vt_interact_log("DEBUG: parse_rm_response, response length=%zu", strlen(response));
     size_t pos = 0;
-    char* temp = _strdup(response);
+    char* temp = platform_strdup(response);
     if (!temp) return 0;
 
     char* saveptr = NULL;
-    char* token = strtok_s(temp, " \n\r\t", &saveptr);
+    char* token = strtok_r(temp, " \n\r\t", &saveptr);
     vt_interact_log("DEBUG: Starting to parse tokens");
     while (token != NULL && pos < buffer_size) {
         /* Parse hex value using strtol */
@@ -543,7 +543,7 @@ static int parse_rm_response(const char* response, uint8_t* buffer, size_t buffe
         if (endptr != token && byte_val >= 0 && byte_val <= 255) {
             buffer[pos++] = (uint8_t)byte_val;
         }
-        token = strtok_s(saveptr, " \n\r\t", &saveptr);
+        token = strtok_r(NULL, " \n\r\t", &saveptr);
     }
     vt_interact_log("DEBUG: Parsed %zu bytes", pos);
 
@@ -619,7 +619,7 @@ bool vt_interact_menu_navigate(vt_interact_handle_t handle, uint8_t row, uint8_t
             result = vt_socket_send_command(internal->socket, "key down", response, sizeof(response));
             if (result) {
 #ifdef _WIN32
-                Sleep(50);
+                platform_sleep_ms(50);
 #else
                 usleep(50000);
 #endif
@@ -631,7 +631,7 @@ bool vt_interact_menu_navigate(vt_interact_handle_t handle, uint8_t row, uint8_t
             result = vt_socket_send_command(internal->socket, "key up", response, sizeof(response));
             if (result) {
 #ifdef _WIN32
-                Sleep(50);
+                platform_sleep_ms(50);
 #else
                 usleep(50000);
 #endif
@@ -654,7 +654,7 @@ bool vt_interact_launch_basic_from_menu(vt_interact_handle_t handle) {
     /* Navigate to BASIC (row 0) */
     if (result) {
         result = vt_socket_send_command(internal->socket, "key up", response, sizeof(response));
-        if (result) Sleep(100);
+        if (result) platform_sleep_ms(100);
     }
     
     /* Press ENTER to launch BASIC */
@@ -679,7 +679,7 @@ bool vt_interact_type_program(vt_interact_handle_t handle, const char* lines[], 
             result = vt_socket_send_command(internal->socket, "key enter", response, sizeof(response));
             if (result) {
 #ifdef _WIN32
-                Sleep(100);
+                platform_sleep_ms(100);
 #else
                 usleep(100000);
 #endif
@@ -712,7 +712,7 @@ bool vt_interact_press_key(vt_interact_handle_t handle, const char* key_name) {
     /* Small delay to allow keystroke to be processed */
     if (result) {
 #ifdef _WIN32
-        Sleep(50);
+        platform_sleep_ms(50);
 #else
         usleep(50000);
 #endif
@@ -739,7 +739,7 @@ bool vt_interact_type_text(vt_interact_handle_t handle, const char* text, bool n
         result = vt_socket_send_command(internal->socket, "key enter", response, sizeof(response));
         if (result) {
 #ifdef _WIN32
-            Sleep(100);
+            platform_sleep_ms(100);
 #else
             usleep(100000);
 #endif
@@ -747,7 +747,7 @@ bool vt_interact_type_text(vt_interact_handle_t handle, const char* text, bool n
     } else if (result) {
         /* Small delay to allow typing to complete */
 #ifdef _WIN32
-        Sleep(100);
+        platform_sleep_ms(100);
 #else
         usleep(100000);
 #endif
@@ -809,9 +809,9 @@ bool vt_interact_verify_mem_contains(vt_interact_handle_t handle, uint16_t addre
 
     /* Parse hex byte values and convert to ASCII */
     /* The response format is: "byte1 byte2 byte3 ... byteN" where each byte is hex */
-    char* temp = _strdup(response);
+    char* temp = platform_strdup(response);
     if (temp) {
-        char* token = strtok_s(temp, " \n", &temp);
+        char* token = strtok_r(temp, " \n", &temp);
         while (token != NULL) {
             /* Parse hex value */
             char* endptr;
@@ -821,7 +821,7 @@ bool vt_interact_verify_mem_contains(vt_interact_handle_t handle, uint16_t addre
                     ascii_buffer[ascii_pos++] = (char)byte_val;
                 }
             }
-            token = strtok_s(temp, " \n", &temp);
+            token = strtok_r(temp, " \n", &temp);
         }
         free(temp);
     }
@@ -914,7 +914,7 @@ bool vt_interact_send_keystrokes(vt_interact_handle_t handle,
 
         /* Small delay to allow keystroke to be processed */
 #ifdef _WIN32
-        Sleep(50);
+        platform_sleep_ms(50);
 #else
         usleep(50000);
 #endif
@@ -925,7 +925,7 @@ bool vt_interact_send_keystrokes(vt_interact_handle_t handle,
     uint32_t elapsed = 0;
     while (elapsed < timeout_ms) {
 #ifdef _WIN32
-        Sleep(10);
+        platform_sleep_ms(10);
 #else
         usleep(10000);
 #endif
@@ -1039,7 +1039,7 @@ bool vt_interact_get_screen_dump(vt_interact_handle_t handle, char* screen, size
     }
 
     /* Copy the response to the output buffer */
-    strncpy_s(screen, screen_size, response, screen_size - 1);
+    platform_strncpy_s(screen, screen_size, response, screen_size - 1);
     screen[screen_size - 1] = '\0';
 
     return true;
@@ -1066,7 +1066,7 @@ bool vt_interact_read_string(vt_interact_handle_t handle, uint16_t address, char
     }
 
     /* The response should be the string itself */
-    strncpy_s(buffer, buffer_size, response, buffer_size - 1);
+    platform_strncpy_s(buffer, buffer_size, response, buffer_size - 1);
     buffer[buffer_size - 1] = '\0';
 
     return true;
@@ -1100,9 +1100,9 @@ bool vt_interact_read_memory(vt_interact_handle_t handle, uint16_t address, size
     /* Parse the response: "byte1 byte2 byte3 ..." -> string (hex radix) */
     size_t pos = 0;
     char* saveptr = NULL;
-    char* temp = _strdup(response);
+    char* temp = platform_strdup(response);
     if (temp) {
-        char* token = strtok_s(temp, " \n\r\t", &saveptr);
+        char* token = strtok_r(temp, " \n\r\t", &saveptr);
         int token_count = 0;
         while (token != NULL && pos < output_size - 1) {
             token_count++;
@@ -1115,7 +1115,7 @@ bool vt_interact_read_memory(vt_interact_handle_t handle, uint16_t address, size
                 /* Null terminator - stop here */
                 break;
             }
-            token = strtok_s(NULL, " \n\r\t", &saveptr);
+            token = strtok_r(NULL, " \n\r\t", &saveptr);
         }
         free(temp);
     }
@@ -1143,7 +1143,7 @@ bool vt_interact_read_memory_raw(vt_interact_handle_t handle, uint16_t address, 
     vt_socket_send_command(internal->socket, "radix 16", response, sizeof(response));
 
     /* Small delay to ensure radix is set */
-    Sleep(50);
+    platform_sleep_ms(50);
 
     /* Read memory using rm command with retry */
     snprintf(command, sizeof(command), "rm %u %zu", address, length);
@@ -1160,7 +1160,7 @@ bool vt_interact_read_memory_raw(vt_interact_handle_t handle, uint16_t address, 
         if (!vt_socket_send_command(internal->socket, command, response, sizeof(response))) {
             printf("DEBUG: vt_socket_send_command failed, retrying...\n");
             retries--;
-            Sleep(50);
+            platform_sleep_ms(50);
             continue;
         }
 
@@ -1173,19 +1173,19 @@ bool vt_interact_read_memory_raw(vt_interact_handle_t handle, uint16_t address, 
         fflush(stdout);
         pos = 0;
         char* saveptr = NULL;
-        char* temp = _strdup(response);
+        char* temp = platform_strdup(response);
         printf("DEBUG: strdup returned: %p\n", (void*)temp);
         fflush(stdout);
         if (temp) {
-            printf("DEBUG: About to strtok_s...\n");
+            printf("DEBUG: About to strtok_r...\n");
             fflush(stdout);
-            char* token = strtok_s(temp, " \n\r\t", &saveptr);
+            char* token = strtok_r(temp, " \n\r\t", &saveptr);
             printf("DEBUG: First token: %s\n", token ? token : "NULL");
             fflush(stdout);
             while (token != NULL && pos < output_size) {
                 /* Skip empty tokens */
                 if (strlen(token) == 0) {
-                    token = strtok_s(NULL, " \n\r\t", &saveptr);
+                    token = strtok_r(NULL, " \n\r\t", &saveptr);
                     continue;
                 }
                 /* Parse hex value */
@@ -1194,7 +1194,7 @@ bool vt_interact_read_memory_raw(vt_interact_handle_t handle, uint16_t address, 
                 if (endptr != token && byte_val >= 0 && byte_val <= 255) {
                     output[pos++] = (uint8_t)byte_val;
                 }
-                token = strtok_s(NULL, " \n\r\t", &saveptr);
+                token = strtok_r(NULL, " \n\r\t", &saveptr);
             }
             printf("DEBUG: About to free temp...\n");
             fflush(stdout);
@@ -1216,7 +1216,7 @@ bool vt_interact_read_memory_raw(vt_interact_handle_t handle, uint16_t address, 
 
         /* Otherwise retry */
         retries--;
-        Sleep(50);
+        platform_sleep_ms(50);
     }
 
     /* Failed to read the expected amount of data */

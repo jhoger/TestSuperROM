@@ -23,6 +23,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "unity.h"
+#include "platform_compat.h"
 #include "vt_interact.h"
 #include <stdlib.h>
 #include <string.h>
@@ -261,7 +262,7 @@ void test_thought_complete_workflow(void) {
     /* Note: THOUGHT does not generate lcdwrite events in VirtualT */
     printf("Step 15: Waiting for THOUGHT to start (no LCD events expected)...\n");
 #ifdef _WIN32
-    Sleep(500);
+    platform_sleep_ms(500);
 #else
     usleep(500000);
 #endif

@@ -13,6 +13,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "unity.h"
+#include "platform_compat.h"
 #include "vt_interact.h"
 #include <stdlib.h>
 #include <string.h>
@@ -130,7 +131,7 @@ static bool launch_thought(void) {
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for THOUGHT to fully load */
+    platform_sleep_ms(1000);  /* Wait for THOUGHT to fully load */
 
     return true;
 }
@@ -147,23 +148,23 @@ static bool save_to_ram_filesystem(const char* filename) {
     if (!vt_interact_press_key(handle, "f2")) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Exit THOUGHT back to SUPER ROM menu (F8) */
     if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Exit SUPER ROM to main NEC menu (F8) */
     if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    Sleep(1000);  /* Wait for filesystem to update after exiting SUPER ROM */
+    platform_sleep_ms(1000);  /* Wait for filesystem to update after exiting SUPER ROM */
 
     return true;
 }
@@ -177,19 +178,19 @@ static bool load_and_verify(const char* filename, const char* expected_content) 
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Launch THOUGHT via F3 */
     if (!vt_interact_press_key(handle, "f3")) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Load the saved outline by typing filename and ENTER */
     if (!vt_interact_type_text(handle, filename, true)) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Verify content via screen memory */
     if (!verify_outline_content(expected_content)) {
@@ -200,15 +201,15 @@ static bool load_and_verify(const char* filename, const char* expected_content) 
     if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
     if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
     if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     return true;
 }
@@ -260,50 +261,50 @@ void test_outline_creation(void) {
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_set_model(handle, "pc8201"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_load_rom(handle), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     /* Install SUPER ROM */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_launch_basic_from_menu(handle), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "EXEC 62394"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     /* Exit to menu */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_exit_to_menu(handle), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     /* Navigate to SUPER ROM menu */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_menu_navigate(handle, 3, 0), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Launch THOUGHT */
     TEST_ASSERT_TRUE_MESSAGE(launch_thought(), "Failed to launch THOUGHT");
 
     /* Press Enter to enter Create mode with NEW FILE selected */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Type filename without newline (THOUGHT adds the extension automatically) */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, test_file, false), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Press Enter to create the file */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Create heading */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Outline Test"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     /* Save to RAM filesystem, verify in menu, load and verify content */
     TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, "Outline Test"), "Outline save/load failed");
 
     /* Exit SUPER ROM */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 }
 
 /* Test: Delete an outline entry */
@@ -332,59 +333,59 @@ void test_outline_deletion(void) {
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_set_model(handle, "pc8201"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_load_rom(handle), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     /* Install SUPER ROM */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_launch_basic_from_menu(handle), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "EXEC 62394"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     /* Exit to menu */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_exit_to_menu(handle), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     /* Navigate to SUPER ROM menu */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_menu_navigate(handle, 3, 0), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Launch THOUGHT */
     TEST_ASSERT_TRUE_MESSAGE(launch_thought(), "Failed to launch THOUGHT");
-    Sleep(800);
+    platform_sleep_ms(Sleep(800));
 
     /* Press Enter to enter Create mode with NEW FILE selected */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Type filename without newline (THOUGHT adds the extension automatically) */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, test_file, false), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Press Enter to create the file */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Create multiple entries */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Entry 1"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(200);
+    platform_sleep_ms(Sleep(200));
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Entry 2"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(200);
+    platform_sleep_ms(Sleep(200));
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Entry 3"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     /* Save to RAM filesystem, verify in menu, load and verify content */
     TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, "Entry 1"), "Outline save/load failed");
 
     /* Exit SUPER ROM */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 }
 
 /* Test: Expand hidden headings (Show/F3) */
@@ -413,56 +414,56 @@ void test_outline_expansion(void) {
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_set_model(handle, "pc8201"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_load_rom(handle), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     /* Install SUPER ROM */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_launch_basic_from_menu(handle), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "EXEC 62394"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     /* Exit to menu */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_exit_to_menu(handle), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     /* Navigate to SUPER ROM menu */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_menu_navigate(handle, 3, 0), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Launch THOUGHT */
     TEST_ASSERT_TRUE_MESSAGE(launch_thought(), "Failed to launch THOUGHT");
 
     /* Press Enter to enter Create mode with NEW FILE selected */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Type filename without newline (THOUGHT adds the extension automatically) */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, test_file, false), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Press Enter to create the file */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Create parent with child */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Parent"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(200);
+    platform_sleep_ms(Sleep(200));
 
     /* Child - indent to create child */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "right"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Child"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     /* Save to RAM filesystem, verify in menu, load and verify content */
     TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, "Parent"), "Outline save/load failed");
 
     /* Exit SUPER ROM */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 }
 
 /* Test: Collapse visible headings (Hide/F2) */
@@ -491,54 +492,54 @@ void test_outline_collapse(void) {
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_set_model(handle, "pc8201"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_load_rom(handle), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     /* Install SUPER ROM */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_launch_basic_from_menu(handle), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "EXEC 62394"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     /* Exit to menu */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_exit_to_menu(handle), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     /* Navigate to SUPER ROM menu */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_menu_navigate(handle, 3, 0), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Launch THOUGHT */
     TEST_ASSERT_TRUE_MESSAGE(launch_thought(), "Failed to launch THOUGHT");
 
     /* Press Enter to enter Create mode with NEW FILE selected */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Type filename without newline (THOUGHT adds the extension automatically) */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, test_file, false), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Press Enter to create the file */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Create parent with child */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Visible"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(200);
+    platform_sleep_ms(Sleep(200));
 
     /* Child - indent to create child */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "right"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Hidden"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     /* Save to RAM filesystem, verify in menu, load and verify content */
     TEST_ASSERT_TRUE_MESSAGE(save_verify_and_reload(test_file, "Visible"), "Outline save/load failed");
 
     /* Exit SUPER ROM */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 }

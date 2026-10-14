@@ -4,6 +4,7 @@
  */
 
 #include "unity.h"
+#include "platform_compat.h"
 #include "vt_interact.h"
 #include <stdlib.h>
 #include <string.h>
@@ -26,7 +27,7 @@ void tearDown(void) {
         vt_interact_destroy(handle);
         handle = NULL;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 }
 
 static const char* get_virtualt_path(void) {
@@ -161,44 +162,44 @@ void test_thought_basic(void) {
     char response[256];
     bool cold_boot_ok = vt_interact_send_command(handle, "cold_boot", response, sizeof(response));
     TEST_ASSERT_TRUE_MESSAGE(cold_boot_ok, "Cold boot failed");
-    Sleep(1000);
+    platform_sleep_ms(1000);
 
     printf("Setting model...\n");
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_set_model(handle, "pc8201"), vt_interact_get_error());
 
     printf("Loading ROM...\n");
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_load_rom(handle), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     printf("Launching SUPER ROM from menu...\n");
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_launch_basic_from_menu(handle), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     printf("Loading SUPER ROM via EXEC...\n");
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "EXEC 62394"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Exit to shell menu */
     printf("Exiting to shell menu...\n");
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_exit_to_menu(handle), vt_interact_get_error());
-    Sleep(1500);
+    platform_sleep_ms(Sleep(1500));
     print_screen_dump(handle);
 
     /* From shell menu, navigate to BASIC (row 0) */
     printf("Navigating to BASIC...\n");
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_menu_navigate(handle, 0, 0), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
     print_screen_dump(handle);
 
     /* Enter BASIC */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
 
     /* Exit BASIC to get to shell menu */
     printf("Exiting BASIC...\n");
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
-    Sleep(1000);
+    platform_sleep_ms(1000);
     print_screen_dump(handle);
 
     /* SUPER ROM was installed earlier with EXEC 62394.
@@ -207,25 +208,25 @@ void test_thought_basic(void) {
 
     /* Navigate to BASIC (row 0) */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_menu_navigate(handle, 0, 0), vt_interact_get_error());
-    Sleep(300);
+    platform_sleep_ms(Sleep(300));
     print_screen_dump(handle);
 
     /* Enter BASIC */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
     print_screen_dump(handle);
 
     /* Load SuperROM from BASIC */
     printf("Loading SuperROM via EXEC 62394...\n");
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "EXEC 62394"), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(3000);  /* Wait for SuperROM to fully initialize */
+    platform_sleep_ms(Sleep(3000));  /* Wait for SuperROM to fully initialize */
     print_screen_dump(handle);
 
     /* From SuperROM, press F3 to launch THOUGHT directly */
     printf("Pressing F3 to launch THOUGHT...\n");
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "f3"), vt_interact_get_error());
-    Sleep(2000);
+    platform_sleep_ms(Sleep(2000));
     print_screen_dump(handle);
 
     /* Verify THOUGHT is running */
@@ -240,30 +241,30 @@ void test_thought_basic(void) {
     /* Type filename after THOUGHT prompt appears */
     printf("Typing filename 'TEST'...\n");
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, "TEST", true), vt_interact_get_error());
-    Sleep(1500);
+    platform_sleep_ms(Sleep(1500));
     print_screen_dump(handle);
 
     /* THOUGHT should now be running with the new file */
     printf("THOUGHT should be running with TEST file...\n");
-    Sleep(1000);
+    platform_sleep_ms(1000);
     print_screen_dump(handle);
 
     /* Exit THOUGHT */
     printf("Exiting THOUGHT...\n");
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
     print_screen_dump(handle);
 
     /* Exit to main NEC menu */
     printf("Exiting to main menu...\n");
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
     print_screen_dump(handle);
 
     /* Exit to THOUGHT menu */
     printf("Exiting to THOUGHT menu...\n");
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "shift-f5"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
     print_screen_dump(handle);
 
     /* Verify file was created */

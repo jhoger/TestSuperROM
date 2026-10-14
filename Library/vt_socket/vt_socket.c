@@ -1,16 +1,16 @@
 /* VirtualT Socket Library - Implementation */
 
 #include "vt_socket.h"
+#include "platform_compat.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <fcntl.h>
 
 #ifdef _WIN32
     #define WIN32_LEAN_AND_MEAN
     #include <winsock2.h>
     #include <windows.h>
-    #define close(a) closesocket(a)
-    #define ssize_t int
 #else
     #include <sys/socket.h>
     #include <netinet/in.h>
@@ -20,7 +20,7 @@
 typedef struct vt_socket_t {
     char host[256];
     uint16_t port;
-    SOCKET socket_fd;
+    platform_socket_t socket_fd;
     bool is_connected;
 } vt_socket_internal_t;
 
@@ -38,37 +38,31 @@ static vt_event_queue_t g_event_queue;
 static vt_event_callback_t g_event_callback = NULL;
 static void* g_event_callback_data = NULL;
 
-#ifdef _WIN32
-static CRITICAL_SECTION g_event_cs;
+/* Platform-specific mutex for event queue */
+static platform_mutex_t g_event_cs;
 static bool g_cs_initialized = false;
-#endif
 
 /* Initialize event queue */
 static void event_queue_init(void) {
     memset(&g_event_queue, 0, sizeof(g_event_queue));
-#ifdef _WIN32
     if (!g_cs_initialized) {
-        InitializeCriticalSection(&g_event_cs);
+        platform_mutex_init(&g_event_cs);
         g_cs_initialized = true;
     }
-#endif
 }
 
 /* Add event to queue */
 static void event_queue_push(const char* event) {
-#ifdef _WIN32
-    EnterCriticalSection(&g_event_cs);
-#endif
+    platform_mutex_lock(&g_event_cs);
 
     if (g_event_queue.count < VT_MAX_EVENTS) {
-        strcpy_s(g_event_queue.events[g_event_queue.tail], VT_EVENT_LEN, event);
+        strncpy(g_event_queue.events[g_event_queue.tail], event, VT_EVENT_LEN - 1);
+        g_event_queue.events[g_event_queue.tail][VT_EVENT_LEN - 1] = '\0';
         g_event_queue.tail = (g_event_queue.tail + 1) % VT_MAX_EVENTS;
         g_event_queue.count++;
     }
 
-#ifdef _WIN32
-    LeaveCriticalSection(&g_event_cs);
-#endif
+    platform_mutex_unlock(&g_event_cs);
 
     /* Call callback if registered */
     if (g_event_callback) {
@@ -83,10 +77,11 @@ static void event_queue_push(const char* event) {
             if (comma2) {
                 size_t name_len = comma1 - start;
                 if (name_len < sizeof(event_name)) {
-                    strncpy_s(event_name, sizeof(event_name), start, name_len);
+                    strncpy(event_name, start, name_len);
+                    event_name[name_len] = '\0';
                     event_name[name_len] = '\0';
                 }
-                strncpy_s(event_data, sizeof(event_data), comma2 + 1, strlen(comma2 + 1));
+                platform_strncpy_s(event_data, sizeof(event_data), comma2 + 1, strlen(comma2 + 1));
                 /* Remove trailing newline */
                 size_t data_len = strlen(event_data);
                 if (data_len > 0 && event_data[data_len - 1] == '\n') {
@@ -101,35 +96,25 @@ static void event_queue_push(const char* event) {
 
 /* Pop event from queue */
 static bool event_queue_pop(char* event, size_t size) {
-#ifdef _WIN32
-    EnterCriticalSection(&g_event_cs);
-#endif
+    platform_mutex_lock(&g_event_cs);
 
     if (g_event_queue.count > 0) {
-        strncpy_s(event, size, g_event_queue.events[g_event_queue.head], size - 1);
+        platform_strncpy_s(event, size, g_event_queue.events[g_event_queue.head], size - 1);
         g_event_queue.head = (g_event_queue.head + 1) % VT_MAX_EVENTS;
         g_event_queue.count--;
-#ifdef _WIN32
-        LeaveCriticalSection(&g_event_cs);
-#endif
+        platform_mutex_unlock(&g_event_cs);
         return true;
     }
 
-#ifdef _WIN32
-    LeaveCriticalSection(&g_event_cs);
-#endif
+    platform_mutex_unlock(&g_event_cs);
     return false;
 }
 
 /* Check if queue has events */
 static bool event_queue_has_events(void) {
-#ifdef _WIN32
-    EnterCriticalSection(&g_event_cs);
-#endif
+    platform_mutex_lock(&g_event_cs);
     bool has = g_event_queue.count > 0;
-#ifdef _WIN32
-    LeaveCriticalSection(&g_event_cs);
-#endif
+    platform_mutex_unlock(&g_event_cs);
     return has;
 }
 
@@ -211,7 +196,7 @@ static bool parse_response(const char* response, char* response_out, size_t resp
     /* If we found "Ok" but the output is empty, add "Ok" to the response
      * so callers can check for it */
     if (found_ok && out_pos == 0 && response_size > 3) {
-        strcpy_s(response_out, response_size, "Ok");
+        platform_strcpy_s(response_out, response_size, "Ok");
         out_pos = 2;
     }
 
@@ -220,7 +205,7 @@ static bool parse_response(const char* response, char* response_out, size_t resp
 }
 
 bool vt_socket_init(void) {
-#ifdef _WIN32
+#if PLATFORM_WINDOWS
     WSADATA wsa;
     event_queue_init();
     return WSAStartup(MAKEWORD(2,2),&wsa)==0;
@@ -231,29 +216,29 @@ bool vt_socket_init(void) {
 }
 
 void vt_socket_cleanup(void) {
-#ifdef _WIN32
+#if PLATFORM_WINDOWS
     WSACleanup();
+#endif
     if (g_cs_initialized) {
-        DeleteCriticalSection(&g_event_cs);
+        platform_mutex_destroy(&g_event_cs);
         g_cs_initialized = false;
     }
-#endif
 }
 
 vt_socket_handle_t vt_socket_create(const char* host, uint16_t port) {
     vt_socket_internal_t* h = malloc(sizeof(vt_socket_internal_t));
     if(!h) return NULL;
     memset(h, 0, sizeof(vt_socket_internal_t));
-    strncpy_s(h->host, sizeof(h->host), host ? host : "127.0.0.1", sizeof(h->host) - 1);
+    platform_strncpy_s(h->host, sizeof(h->host), host ? host : "127.0.0.1", sizeof(h->host) - 1);
     h->port = port;
-    h->socket_fd = INVALID_SOCKET;
+    h->socket_fd = PLATFORM_INVALID_SOCKET;
     h->is_connected = false;
     return (vt_socket_handle_t)h;
 }
 
 void vt_socket_destroy(vt_socket_handle_t handle) {
     vt_socket_internal_t* i = (vt_socket_internal_t*)handle;
-    if(i && i->is_connected && i->socket_fd != INVALID_SOCKET) {
+    if(i && i->is_connected && i->socket_fd != PLATFORM_INVALID_SOCKET) {
         close(i->socket_fd);
     }
     free(handle);
@@ -262,7 +247,8 @@ void vt_socket_destroy(vt_socket_handle_t handle) {
 bool vt_socket_connect(vt_socket_handle_t handle) {
     vt_socket_internal_t* i = (vt_socket_internal_t*)handle;
     if(!i) return false;
-#ifdef _WIN32
+
+#if PLATFORM_WINDOWS
     int s = (int)socket(AF_INET, SOCK_STREAM, 0);
     if(s < 0) return false;
     struct sockaddr_in addr;
@@ -274,19 +260,32 @@ bool vt_socket_connect(vt_socket_handle_t handle) {
         close(s);
         return false;
     }
-    i->socket_fd = (SOCKET)s;
+    i->socket_fd = (platform_socket_t)s;
     i->is_connected = true;
     return true;
 #else
-    return false;  /* Not implemented */
+    int s = socket(AF_INET, SOCK_STREAM, 0);
+    if(s < 0) return false;
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(i->port);
+    inet_pton(AF_INET, i->host, &addr.sin_addr);
+    if(connect(s, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+        close(s);
+        return false;
+    }
+    i->socket_fd = s;
+    i->is_connected = true;
+    return true;
 #endif
 }
 
 void vt_socket_disconnect(vt_socket_handle_t handle) {
     vt_socket_internal_t* i = (vt_socket_internal_t*)handle;
-    if(i && i->is_connected && i->socket_fd != INVALID_SOCKET) {
+    if(i && i->is_connected && i->socket_fd != PLATFORM_INVALID_SOCKET) {
         close(i->socket_fd);
-        i->socket_fd = INVALID_SOCKET;
+        i->socket_fd = PLATFORM_INVALID_SOCKET;
     }
     i->is_connected = false;
 }
@@ -328,8 +327,15 @@ bool vt_socket_send_command(vt_socket_handle_t handle, const char* command, char
 
     /* Receive response with timeout */
     /* Use a moderate timeout (5 seconds) for commands that may take longer */
+#if PLATFORM_WINDOWS
     DWORD timeout = 5000;  /* 5 second timeout */
     setsockopt(i->socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
+#else
+    struct timeval tv;
+    tv.tv_sec = 5;
+    tv.tv_usec = 0;
+    setsockopt(i->socket_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+#endif
 
     /* Read response - VirtualT sends the response after the command is processed */
     ssize_t r = recv(i->socket_fd, response, (int)(response_size - 1), 0);
@@ -350,7 +356,7 @@ bool vt_socket_send_command(vt_socket_handle_t handle, const char* command, char
      * In this case, use the raw response directly */
     if (strstr(command, "sd") == command) {
         /* Copy raw response to output buffer */
-        strncpy_s(response, response_size, response, response_size - 1);
+        platform_strncpy_s(response, response_size, response, response_size - 1);
         return true;
     }
 
@@ -358,12 +364,12 @@ bool vt_socket_send_command(vt_socket_handle_t handle, const char* command, char
      * may still succeed. Accept non-empty response as success. */
     if (strstr(command, "key ") == command && response[0] != '\0') {
         /* Copy raw response to output buffer */
-        strncpy_s(response, response_size, response, response_size - 1);
+        platform_strncpy_s(response, response_size, response, response_size - 1);
         return true;
     }
 
     /* Copy to output buffer */
-    strncpy_s(response, response_size, response_out, response_size - 1);
+    platform_strncpy_s(response, response_size, response_out, response_size - 1);
 
     return ok;
 }
@@ -376,9 +382,14 @@ bool vt_socket_flush(vt_socket_handle_t handle) {
     char buffer[1024];
     int bytes_read = 0;
 
-    /* Use ioctl to set non-blocking mode */
+    /* Use fcntl to set non-blocking mode */
+#if PLATFORM_WINDOWS
     u_long nonblocking = 1;
     ioctlsocket(i->socket_fd, FIONBIO, &nonblocking);
+#else
+    int flags = fcntl(i->socket_fd, F_GETFL, 0);
+    fcntl(i->socket_fd, F_SETFL, flags | O_NONBLOCK);
+#endif
 
     ssize_t r = recv(i->socket_fd, buffer, sizeof(buffer) - 1, 0);
     while (r > 0) {
@@ -390,8 +401,13 @@ bool vt_socket_flush(vt_socket_handle_t handle) {
     }
 
     /* Reset to blocking mode */
+#if PLATFORM_WINDOWS
     nonblocking = 0;
     ioctlsocket(i->socket_fd, FIONBIO, &nonblocking);
+#else
+    int flags_reset = fcntl(i->socket_fd, F_GETFL, 0);
+    fcntl(i->socket_fd, F_SETFL, flags_reset & ~O_NONBLOCK);
+#endif
 
     return true;
 }

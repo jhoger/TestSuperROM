@@ -91,7 +91,7 @@ int main(void) {
     }
     printf("BASIC launched\n");
 
-    Sleep(500);
+    platform_sleep_ms(500);
 
     printf("Sending keystrokes...\n");
     const char* keys[] = {"T", "E", "S", "T"};

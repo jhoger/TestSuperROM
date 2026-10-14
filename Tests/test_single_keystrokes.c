@@ -6,6 +6,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "unity.h"
+#include "platform_compat.h"
 #include "vt_interact.h"
 #include <stdlib.h>
 #include <string.h>
@@ -27,7 +28,7 @@ void tearDown(void) {
         vt_interact_destroy(handle);
         handle = NULL;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 }
 
 static const char* get_virtualt_path(void) {

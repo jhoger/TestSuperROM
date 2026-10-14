@@ -13,6 +13,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include "unity.h"
+#include "platform_compat.h"
 #include "vt_interact.h"
 #include <stdlib.h>
 #include <string.h>
@@ -106,7 +107,7 @@ static bool launch_thought(void) {
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for THOUGHT to fully load */
+    platform_sleep_ms(1000);  /* Wait for THOUGHT to fully load */
 
     return true;
 }
@@ -123,23 +124,23 @@ static bool save_to_ram_filesystem(const char* filename) {
     if (!vt_interact_press_key(handle, "f2")) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Exit THOUGHT back to SUPER ROM menu (F8) */
     if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Exit SUPER ROM to main NEC menu (F8) */
     if (!vt_interact_press_key(handle, "shift-f5")) {
         return false;
     }
-    Sleep(1000);  /* Wait for filesystem to update after exiting SUPER ROM */
+    platform_sleep_ms(1000);  /* Wait for filesystem to update after exiting SUPER ROM */
 
     return true;
 }
@@ -150,31 +151,31 @@ static bool load_and_verify(const char* filename, const char* expected_content) 
     if (!vt_interact_menu_navigate(handle, 3, 0)) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    platform_sleep_ms(1000);  /* Wait for save to complete */
 
     /* Launch THOUGHT via F3 */
     if (!vt_interact_press_key(handle, "f3")) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    platform_sleep_ms(1000);  /* Wait for save to complete */
 
     /* Load the saved outline by typing filename and ENTER */
     if (!vt_interact_type_text(handle, filename, true)) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    platform_sleep_ms(1000);  /* Wait for save to complete */
 
     /* Verify content via screen memory */
     if (!verify_outline_content(expected_content)) {
@@ -251,24 +252,24 @@ void test_thought_create_single_heading(void) {
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_menu_navigate(handle, 3, 0), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    platform_sleep_ms(1000);  /* Wait for save to complete */
 
     TEST_ASSERT_TRUE_MESSAGE(launch_thought(), "Failed to launch THOUGHT");
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Type filename without extension (THOUGHT adds it automatically) */
     if (!vt_interact_type_text(handle, test_file, true)) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Create heading */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_line(handle, "Outline Test"), vt_interact_get_error());
@@ -316,24 +317,24 @@ void test_thought_create_multiple_headings(void) {
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_menu_navigate(handle, 3, 0), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    platform_sleep_ms(1000);  /* Wait for save to complete */
 
     TEST_ASSERT_TRUE_MESSAGE(launch_thought(), "Failed to launch THOUGHT");
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Type filename without extension (THOUGHT adds it automatically) */
     if (!vt_interact_type_text(handle, test_file, true)) {
         return false;
     }
-    Sleep(500);
+    platform_sleep_ms(500);
 
     /* Create multiple sibling headings */
     const char* headings[] = {"Heading A", "Heading B", "Heading C"};
@@ -384,26 +385,26 @@ void test_thought_create_nested_headings(void) {
 
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_menu_navigate(handle, 3, 0), vt_interact_get_error());
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_press_key(handle, "enter"), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    platform_sleep_ms(1000);  /* Wait for save to complete */
 
     TEST_ASSERT_TRUE_MESSAGE(launch_thought(), "Failed to launch THOUGHT");
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    platform_sleep_ms(1000);  /* Wait for save to complete */
 
     /* Type filename */
     TEST_ASSERT_TRUE_MESSAGE(vt_interact_type_text(handle, test_file, true), vt_interact_get_error());
-    Sleep(500);
+    platform_sleep_ms(500);
     if (!vt_interact_press_key(handle, "enter")) {
         return false;
     }
-    Sleep(1000);  /* Wait for save to complete */
+    platform_sleep_ms(1000);  /* Wait for save to complete */
 
     /* Create parent heading */
     printf("Creating parent heading...\n");
